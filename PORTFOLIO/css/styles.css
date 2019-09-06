@@ -221,7 +221,7 @@ header
     width: 375px;
     height: 220px;
     margin: 0 auto;
-    border: 3px solid #fff;
+    border: 3px solid rgb(235, 235, 235);
     -webkit-box-shadow: 10px 10px 50px #717171;
     box-shadow: 10px 10px 50px #717171;
     opacity: 1;
@@ -238,7 +238,7 @@ header
 .card-layouts img:hover,
 .icon-loading:hover
 {
-    opacity: 0.95;
+    opacity: 0.90;
     -webkit-transform: scale(1);
     transform: scale(1);
 }
