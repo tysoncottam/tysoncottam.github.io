@@ -198,7 +198,7 @@ header
     -webkit-box-shadow: 10px 10px 70px #1c1c1c;
     box-shadow: 10px 10px 70px #1c1c1c;
     padding: 50px 10px;
-    margin: 50px 10px;
+    margin: 50px 10px 0 10px;
     position: relative;
     overflow: hidden;
 }

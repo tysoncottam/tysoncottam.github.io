@@ -7,7 +7,7 @@
     .card-layouts
     {
         padding: 40px 5px;
-        margin: 40px 5px;
+        margin: 40px 5px 0 5px;
     }
     .card-layouts img,
     .icon-loading
@@ -46,7 +46,7 @@
     .card-layouts
     {
         padding: 30px 5px;
-        margin: 30px 5px;
+        margin: 30px 5px 0 5px;
     }
     .card-layouts img,
     .icon-loading
@@ -126,7 +126,7 @@
     .card-layouts
     {
         padding: 25px 5px;
-        margin: 25px 5px;
+        margin: 25px 5px 0 5px;
     }
     .card-layouts img,
     .icon-loading
@@ -169,7 +169,7 @@
     card-layouts
     {
         padding: 30px 5px;
-        margin: 30px 5px;
+        margin: 30px 5px 0 5px;
     }
     .card-layouts img,
     .icon-loading
