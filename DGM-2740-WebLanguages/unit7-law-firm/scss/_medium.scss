@@ -1,0 +1,21 @@
+nav
+{
+    justify-content: space-around;
+    padding: 0;
+}
+
+.nav-links
+{
+    width: 65%;
+}
+
+.nav-links a
+{
+    font-size: 80%;
+    padding: 2vh 32px;
+}
+
+.flex-container div
+{
+    flex-basis: 33%;
+}
