@@ -134,7 +134,9 @@ nav
     justify-content: flex-start;
     align-items: center;
     color: $off-white;    
-    padding: 0px 1rem;
+    padding: 0px 2%;
+    min-height: 55px;
+    max-height: 55px;
 }
 
 .nav-links
@@ -157,7 +159,7 @@ nav
     text-decoration: none;
     letter-spacing: 3px;
     font-weight: 400;
-    padding: $nav-padding;
+    padding: 18.5px 29px;
     white-space: nowrap;
 }
 

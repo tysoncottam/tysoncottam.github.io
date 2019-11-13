@@ -1,23 +1,9 @@
-header h1
-{
-    font-size: 150%;
-}
-
-header h2
-{
-    font-size: 115%;
-}
-
-
-
-/* --------------- nav --------------- */
-
 nav
 {
     background-color: $secondary-website-theme;
     justify-content: flex-start;
     padding-left: 15px;
-    min-height: 6vh;
+
 }
 
 .nav-links
@@ -154,4 +140,14 @@ nav li.active
     {
         border-radius: 0;
     }
+    header h1
+    {
+        font-size: 150%;
+    }
+
+    header h2
+    {
+        font-size: 115%;
+    }
+
 }
