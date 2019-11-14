@@ -4,6 +4,16 @@
     box-sizing: border-box;
 }
 
+*:focus
+{
+    outline:none;
+}
+
+html
+{
+    scroll-behavior: smooth;
+}
+
 @for $i from 1 through 12 {
     $w:(($i/12)-0.02)*100%;
     .Mlarge-#{$i}{flex-basis: $w;}
@@ -180,12 +190,14 @@ nav
     padding: 0;
 }
 
-.nav-links li
+.nav-links li,
+.social-links li
 {
     list-style: none;
 }
 
-.nav-links a
+.nav-links a,
+.social-links a
 {
     color: $off-white;
     text-decoration: none;
@@ -210,6 +222,60 @@ nav li.active
 .search-2 input
 {
     display: none;
+}
+
+footer,
+.social-links
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+}
+
+.social-links
+{
+    text-decoration: none;
+    font-size: 25px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.ion-social-facebook
+{
+    font-size: 30px;
+}
+
+.social-links a
+{
+    padding: 0;
+    margin: 0 29px;
+    
+}
+
+.ion-social-facebook,
+.ion-social-twitter,
+.ion-social-twitch
+{
+  -webkit-transition: color 0.2s;
+  transition: color 0.2s;
+}
+
+.ion-social-facebook:hover,
+.ion-social-facebook:active
+{
+    color: lighten($website-theme, 10%);
+}
+
+.ion-social-twitter:hover,
+.ion-social-twitter:active
+{
+    color: #55acee;
+}
+
+.ion-social-twitch:hover,
+.ion-social-twitch:active
+{
+    color: lighten(#6441a5, 10%);
 }
 
 /*--------------------------------------------------------------*/
