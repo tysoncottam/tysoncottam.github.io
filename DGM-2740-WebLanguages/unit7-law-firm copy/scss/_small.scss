@@ -7,18 +7,14 @@
     .small-#{$i}{flex-basis: $w;}
 }
 
-header input
-{
-    width: 150px;
-}
-
 /*--------------------------------------------------------------*/
 
 nav
 {
     background-color: $secondary-website-theme;
-    justify-content: space-between;
-    padding: 0px 15px;
+    justify-content: flex-start;
+    padding-left: 15px;
+
 }
 
 .nav-links
@@ -104,15 +100,6 @@ nav li.active
 .nav-break
 {
     display: none;
-}
-
-.search-1
-{
-    display: none;
-}
-.search-2
-{
-    display: block;
 }
 
 .nav-active

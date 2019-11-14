@@ -124,14 +124,6 @@ header
     color: $off-white;
     min-height: 110px;
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.header-1
-{
-    display: flex;
     flex-direction: column;
     justify-content: space-evenly;
 }
@@ -144,14 +136,6 @@ header h1
 header h2
 {
     font-size: 150%;
-}
-
-.search-1 input,
-.search-2 input
-{
-    width: 300px;
-    border-radius: 5px;
-    padding: 5px;
 }
 
 header, nav, footer
@@ -206,13 +190,10 @@ nav li.active
     background-color: darken($secondary-website-theme, 15%);
 }
 
-.menu,
-.search-2
+.menu
 {
     display: none;
 }
-
-
 
 /*--------------------------------------------------------------*/
 .lawyers,

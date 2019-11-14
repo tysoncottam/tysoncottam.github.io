@@ -398,23 +398,23 @@ body {
   font-family: 'Lato', sans-serif;
   font-size: 16px; }
 
-/* ----- header rules ----- */
 .hf-wrapper {
   width: 100%;
-  background-color: #1c92c3; }
+  background-color: #f8c66a; }
 
+/* ----- header rules ----- */
 header {
-  background-color: #1c92c3;
+  background-color: #f8c66a;
   padding: 1rem 2%;
-  color: #eee;
+  color: #fff;
   font-weight: 400; }
 
-.logo-science {
+.logo-burger {
   width: 100px;
   height: auto;
   float: left;
   margin-right: 15px;
-  border: 2px solid #fff;
+  border: 3px solid #fff;
   border-radius: 50%; }
 
 header h1 {
@@ -427,6 +427,39 @@ header h2 {
   display: none; }
 
 /* ----- nav rules ----- */
+.nav-wrapper {
+  width: 100%;
+  background-color: #f5aa21; }
+
+nav {
+  font-weight: 300;
+  background-color: #f5aa21; }
+
+nav ul {
+  margin: 0;
+  padding: 0; }
+
+nav li {
+  list-style-type: none; }
+
+nav li.active {
+  background-color: #444; }
+
+nav a {
+  display: block;
+  padding: .8rem 0;
+  /* 44px Apple Recommended */
+  color: #eee;
+  text-align: center;
+  text-decoration: none; }
+
+nav a:hover {
+  background-color: #f8c66a;
+  transition: background-color 0.2s; }
+
+nav li.active {
+  background-color: #d8900a; }
+
 /* ----- hero-section ----- */
 .hero-section {
   width: 100%;
@@ -442,14 +475,15 @@ main {
   font-weight: 300; }
 
 main h2 {
-  color: #17a8e4;
+  color: #f8c66a;
   margin: 0; }
 
-main figure {
-  width: 100%;
-  margin: 0; }
+.halfWidth {
+  float: right;
+  width: 48%;
+  margin: 0 0 2% 2%; }
 
-main figure img {
+.halfWidth img {
   width: 100%;
   margin-top: 16px; }
 
@@ -460,7 +494,7 @@ main p {
 footer {
   text-align: center;
   padding: 1rem 2%;
-  background-color: #1c92c3;
+  background-color: #f8c66a;
   color: #eee;
   font-weight: 400; }
 
@@ -470,119 +504,20 @@ footer {
   display: block;
   clear: both; }
 
-/*  apply a natural box layout model to all elements  */
-* {
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box; }
-
-#hamburgerBtn {
-  display: none; }
-
-/* hide the navigation button for all screen widths. We will show it below just for small screens */
-@media only screen and (max-width: 60rem) {
-  /* Pushes the body tag down to make room for the navigation bar at the top of the page */
-  body {
-    padding-top: 2.75rem; }
-
-  nav {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 2.75rem;
-    background-color: #56F; }
-
-  #hamburgerBtn {
-    display: block;
-    width: 7rem;
-    height: 2.75rem;
-    background: none;
-    color: rgba(255, 255, 255, 0.9);
-    border: 0 none;
-    font-size: 1.3rem;
-    font-weight: normal;
-    text-align: left; }
-    #hamburgerBtn i {
-      font-size: 2rem;
-      font-style: normal; }
-
-  #hamburgerBtn.open span:nth-child(1) {
-    display: none; }
-
-  #hamburgerBtn.open span:nth-child(2) {
-    display: block; }
-
-  #hamburgerBtn span:nth-child(1) {
-    display: block; }
-
-  #hamburgerBtn span:nth-child(2) {
-    display: none; }
-
-  #primaryNav {
-    height: 0;
-    overflow: hidden;
-    width: 20rem;
-    background-color: #56F;
-    margin: 0;
-    padding: 0;
-    z-index: 998;
-    font-family: Verdana;
-    font-weight: normal; }
-
-  #primaryNav li.current-menu-item a {
-    background-color: rgba(0, 0, 0, 0.25); }
-
-  #primaryNav li a {
-    display: block;
-    width: 100%;
-    padding: .75rem 2vw;
-    font-size: 14px;
-    text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.15);
-    color: rgba(255, 255, 255, 0.9);
-    text-decoration: none;
-    border-top: 1px solid rgba(0, 0, 0, 0.2); }
-
-  #primaryNav li a:hover {
-    background-color: rgba(0, 0, 0, 0.5); }
-
-  #primaryNav.open {
-    height: auto; }
-
-  #primaryNav li.parent > a::after {
-    font-size: .75rem;
-    content: "\25BC";
-    color: rgba(255, 255, 255, 0.5);
-    float: right; }
-
-  #primaryNav li ul {
-    display: none;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 0;
-    margin: 0; }
-
-  #primaryNav li ul a {
-    padding-left: 20px; }
-
-  #primaryNav li:hover ul {
-    display: block; } }
-/* End Mobile Styles */
 @media only screen and (min-width: 35rem) {
+  nav li {
+    float: left;
+    width: 25%; }
+
   header h1 {
     padding-top: 20px;
     font-size: 1.75em; }
 
   header h2 {
     display: block;
-    font-size: 1em; }
-
-  main figure {
-    float: right;
-    width: 48%;
-    margin-left: 2%;
-    padding-bottom: .5rem; } }
+    font-size: 1em; } }
 @media only screen and (min-width: 60rem) {
-  header, .hero-section, main, footer {
+  header, nav, .hero-section, main, footer {
     max-width: 75rem;
     margin: auto; }
 
@@ -593,54 +528,13 @@ footer {
     display: block;
     font-size: 1.5em; }
 
-  /*  ----------------------- NAVIGATION --------------------------- */
-  nav {
-    background-color: #56F; }
-    nav ul {
-      margin: 0 0 0 2vw;
-      padding: 0; }
-    nav ul > li {
-      float: left;
-      list-style: none;
-      border-left: 1px solid rgba(0, 0, 0, 0.2); }
-    nav ul li:last-child {
-      border-right: 1px solid rgba(0, 0, 0, 0.2); }
-    nav ul li a {
-      display: block;
-      background: none;
-      font-size: .9em;
-      padding: .9em .9em;
-      color: rgba(255, 255, 255, 0.9);
-      text-decoration: none;
-      /*transition to transition over time on hover*/
-      -webkit-transition: background 0.3s linear;
-      transition: background 0.3s linear; }
-    nav ul li a:hover {
-      background: #3c4fff; }
-    nav #primaryNav li.parent > a::before {
-      font-size: .75rem;
-      content: "\25BC";
-      color: rgba(255, 255, 255, 0.5); }
-    nav ul li ul {
-      z-index: 998;
-      position: absolute;
-      background-color: #4658ff;
-      left: -999em;
-      /* pushes the menu way off to the side */
-      width: 12em; }
-    nav ul li ul li {
-      /* overides the float and line from the parent ul */
-      float: none;
-      border: none;
-      border-top: solid 1px rgba(0, 0, 0, 0.2);
-      /* vertical line seperating sub menu items*/ }
-    nav ul li:hover ul {
-      left: auto;
-      margin-left: 0; }
-    nav li.current-menu-item a {
-      background-color: rgba(0, 0, 0, 0.25); }
+  nav ul {
+    padding-left: 2%; }
 
-  main figure {
-    width: 31%; } }
+  nav li {
+    width: auto; }
+
+  nav a {
+    padding: .5rem 1rem; } }
 
 /*# sourceMappingURL=styles.css.map */
