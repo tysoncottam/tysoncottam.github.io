@@ -146,10 +146,10 @@ header h2
     font-size: 150%;
 }
 
-.search-1 input,
-.search-2 input
+.search-1 input
 {
     width: 300px;
+    height: auto;
     border-radius: 5px;
     padding: 5px;
 }
@@ -207,12 +207,10 @@ nav li.active
 }
 
 .menu,
-.search-2
+.search-2 input
 {
     display: none;
 }
-
-
 
 /*--------------------------------------------------------------*/
 .lawyers,

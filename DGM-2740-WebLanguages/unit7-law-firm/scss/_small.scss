@@ -110,9 +110,14 @@ nav li.active
 {
     display: none;
 }
-.search-2
+.search-2 input
 {
     display: block;
+    width: 150px;
+    border-radius: 5px;
+    padding: 5px;
+    position: relative;
+    z-index: 2;
 }
 
 .nav-active
