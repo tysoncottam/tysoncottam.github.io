@@ -72,11 +72,11 @@ nav
 .nav-links a:after
 {
     text-decoration: none;
-    content: ""; 
-    display: block; 
-    margin: 0 auto; 
-    width: 70%; 
-    padding-top: 4px; 
+    content: "";
+    display: block;
+    margin: 0 auto;
+    width: 70%;
+    padding-top: 4px;
     border-bottom: 3px solid transparent;
     transition: border-bottom 0.3s;
 }
@@ -123,7 +123,7 @@ nav li.active
     display: none;
 }
 
-/* --- search text fields --- */ 
+/* --- search text fields --- */
 .search-1
 {
     display: none;
@@ -147,27 +147,27 @@ nav li.active
 
 .nav-active
 {
-    transform: translateX(0%);  
+    transform: translateX(0%);
     padding: 0;
     border-bottom-right-radius: 15px;
     transition: transform 0.5s ease-in;
 }
 
-/* --- menu slides from the side --- */ 
+/* --- menu slides from the side --- */
 @keyframes navLinkFade {
-    from 
+    from
     {
         opacity: 0;
         transform: translateX(-50px);
     }
-    to 
+    to
     {
         opacity: 1;
         transform: translateX(0px);
     }
 }
 
-/* --- animation of nav menu burger --- */ 
+/* --- animation of nav menu burger --- */
 .toggle .menu-top
 {
     transform: rotate(-45deg) translate(-5px, 6px);
@@ -183,10 +183,10 @@ nav li.active
 
 /* --- special tiny mobile changes --- */
 @media only screen and (max-width: 450px)
-{ 
+{
     .nav-links
     {
-        width: 100%;   
+        width: 100%;
     }
     .nav-active
     {
@@ -206,22 +206,22 @@ nav li.active
 /* ------------------------------ main ------------------------------ */
 
 
-/* --------------- lawyers --------------- */
+/* --------------- people-section --------------- */
 
 
-/* --------------- cta --------------- */
-.cta 
+/* --------------- cases-section --------------- */
+.cases-section
 {
     width: 100vw;
     margin: 30px 0px 30px 0px;
     justify-content: center;
 }
 
-/* --------------- blogs --------------- */
+/* --------------- blogs-section --------------- */
 
 
 /* --------------- tip-faq --------------- */
-.tip-faq 
+.tip-faq
 {
   justify-content: center;
 }
@@ -233,7 +233,7 @@ nav li.active
     padding: 0;
 }
 
-.social-links li 
+.social-links li
 {
     width: 50px;
 }

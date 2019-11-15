@@ -54,13 +54,13 @@ nav,
 footer,
 .social-links,
 main,
-.lawyers,
-.lawyers div,
-.cta,
-.blogs,
-.blogs div,
-.blogs h3,
-.blogs p,
+.people-section,
+.people-section div,
+.cases-section,
+.blogs-section,
+.blogs-section div,
+.blogs-section h3,
+.blogs-section p,
 .tip-faq,
 .tip,
 .tip h2,
@@ -83,9 +83,9 @@ footer
     max-width: 75rem;
 }
 
-.lawyers,
-.cta,
-.blogs,
+.people-section,
+.cases-section,
+.blogs-section,
 .tip-faq
 {
     width: 75rem;
@@ -178,7 +178,7 @@ header
 {
     flex-direction: column;
     justify-content: space-evenly;
-    
+
 }
 
 header h1
@@ -258,8 +258,8 @@ main
     justify-content: flex-start;
 }
 
-/* --------------- lawyers --------------- */
-.lawyers
+/* --------------- people-section --------------- */
+.people-section
 {
     justify-content: center;
     margin: 30px 0px 0px 0px;
@@ -295,8 +295,8 @@ main
     }
 }
 
-/* --------------- cta --------------- */
-.cta
+/* --------------- cases-section --------------- */
+.cases-section
 {
     justify-content: center;
     flex-direction: row;
@@ -322,8 +322,8 @@ main
 }
 
 
-/* --------------- blogs --------------- */
-.blogs
+/* --------------- blogs-section --------------- */
+.blogs-section
 {
     justify-content: space-between;
 
