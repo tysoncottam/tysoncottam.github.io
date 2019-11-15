@@ -1,4 +1,14 @@
-/* --------------- * --------------- */
+/* --------------- SASS --------------- */
+@for $i from 1 through 12 {
+    $w:(($i/12)-0.02)*100%;
+    .Mlarge-#{$i}{flex-basis: $w;}
+}
+@for $i from 1 through 12 {
+    $w:($i/12)*100%;
+    .large-#{$i}{flex-basis: $w;}
+}
+
+/* --------------- html & body --------------- */
 *
 {
     box-sizing: border-box;
@@ -14,13 +24,15 @@ html
     scroll-behavior: smooth;
 }
 
-@for $i from 1 through 12 {
-    $w:(($i/12)-0.02)*100%;
-    .Mlarge-#{$i}{flex-basis: $w;}
-}
-@for $i from 1 through 12 {
-    $w:($i/12)*100%;
-    .large-#{$i}{flex-basis: $w;}
+body
+{
+    font-family: 'Lato', sans-serif;
+    font-size: $standard-font-size;
+    overflow-x: hidden;
+    width: 100vw;
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
 }
 
 /* --------------- clear fix --------------- */
@@ -31,16 +43,54 @@ html
     clear: both;
 }
 
-/* --------------- similar --------------- */
+/* --------------- body --------------- */
+
+/* --------------- mixed --------------- */
+body,
+header,
+.header-1,
+nav,
+.nav-links,
+footer,
+.social-links,
+main,
+.lawyers,
+.lawyers div,
+.cta,
+.blogs,
+.blogs div,
+.blogs h3,
+.blogs p,
+.tip-faq,
+.tip,
+.tip h2,
+.tip p,
+.tip a,
+.faq,
+.faq h2,
+.faq p,
+.faq a
+{
+    display: flex;
+    align-items: center;
+}
+
 header,
 nav,
 main,
 footer
 {
     max-width: 75rem;
-    margin: auto;
 }
 
+.lawyers,
+.cta,
+.blogs,
+.tip-faq
+{
+    width: 75rem;
+    flex-wrap: wrap;
+}
 
 h1,
 h2,
@@ -60,8 +110,7 @@ footer
     background-color: $website-theme;
 }
 
-nav a,
-main
+nav a
 {
     display: block;
 }
@@ -72,7 +121,6 @@ p
 {
     text-align: center;
 }
-
 
 nav a,
 footer
@@ -112,38 +160,25 @@ footer
     width: 100%;
 }
 
-
-/* --------------- body --------------- */
-body
+header, nav, main, footer
 {
-    font-family: 'Lato', sans-serif;
-    font-size: $standard-font-size;
-    overflow-x: hidden;
-    width: 100vw;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0;
-    margin: 0;
+    margin: auto;
 }
 
 /* --------------- header --------------- */
-
 header
 {
     color: $off-white;
     min-height: 110px;
-    display: flex;
     flex-direction: row;
     justify-content: space-between;
-    align-items: center;
 }
 
 .header-1
 {
-    display: flex;
     flex-direction: column;
     justify-content: space-evenly;
+    
 }
 
 header h1
@@ -164,17 +199,11 @@ header h2
     padding: 5px;
 }
 
-header, nav, footer
-{
-    margin: auto;
-}
-
 /* --------------- nav --------------- */
+
 nav
 {
-    display: flex;
     justify-content: flex-start;
-    align-items: center;
     color: $off-white;
     padding: 0px 2%;
     min-height: 55px;
@@ -183,9 +212,7 @@ nav
 
 .nav-links
 {
-    display: flex;
     justify-content: space-around;
-    align-items: center;
     width: 65%;
     padding: 0;
 }
@@ -219,95 +246,27 @@ nav li.active
 }
 
 .menu,
-.search-2 input
+.search-2
 {
     display: none;
 }
 
-footer,
-.social-links
-{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: row;
-}
-
-.social-links
-{
-    text-decoration: none;
-    font-size: 25px;
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-.ion-social-facebook
-{
-    font-size: 30px;
-}
-
-.social-links a
-{
-    padding: 0;
-    margin: 0 29px;
-    
-}
-
-.ion-social-facebook,
-.ion-social-twitter,
-.ion-social-twitch
-{
-  -webkit-transition: color 0.2s;
-  transition: color 0.2s;
-}
-
-.ion-social-facebook:hover,
-.ion-social-facebook:active
-{
-    color: lighten($website-theme, 10%);
-}
-
-.ion-social-twitter:hover,
-.ion-social-twitter:active
-{
-    color: #55acee;
-}
-
-.ion-social-twitch:hover,
-.ion-social-twitch:active
-{
-    color: lighten(#6441a5, 10%);
-}
-
-/*--------------------------------------------------------------*/
-.lawyers,
-.cta,
-.blogs,
-.tip-faq
-{
-    width: 75rem;
-    flex-wrap: wrap;
-}
-
+/* ------------------------------ main ------------------------------ */
 main
 {
-    display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    align-items: center;
 }
 
+/* --------------- lawyers --------------- */
 .lawyers
 {
-    display: flex;
-    align-items: center;
     justify-content: center;
     margin: 30px 0px 0px 0px;
     div
     {
         width: 100%;
-        display: flex;
         flex-direction: column;
-        align-items: center;
         box-shadow: 5px 5px 30px#959595;
         border-radius: 10px;
         margin: 0px 10px 0px 10px;
@@ -336,10 +295,9 @@ main
     }
 }
 
+/* --------------- cta --------------- */
 .cta
 {
-    display: flex;
-    align-items: center;
     justify-content: center;
     flex-direction: row;
     margin: 30px 0px 30px 0px;
@@ -363,17 +321,15 @@ main
     }
 }
 
+
+/* --------------- blogs --------------- */
 .blogs
 {
-    display: flex;
-    align-items: center;
     justify-content: space-between;
 
     div
     {
-        display: flex;
         flex-direction: column;
-        align-items: center;
         box-shadow: 1px 1px 30px#959595;
         border-radius: 10px;
         img
@@ -386,15 +342,11 @@ main
         h3
         {
             width: 95%;
-            display: flex;
-            align-items: center;
             justify-content: flex-start;
         }
         p
         {
             width: 95%;
-            display: flex;
-            align-items: center;
             justify-content: flex-start;
             margin: 0px 0px 10px 0px;
             text-align: left;
@@ -416,26 +368,21 @@ main
     }
 }
 
+/* --------------- tip-faq --------------- */
 .tip-faq
 {
-    display: flex;
-    align-items: center;
     justify-content: space-between;
     margin: 20px 0px 20px 0px;
 }
 
 .tip
 {
-    display: flex;
     flex-direction: column;
-    align-items: center;
     background: $secondary-website-theme;
     border-radius: 10px;
     h2, p, a
     {
         width: 95%;
-        display: flex;
-        align-items: center;
         justify-content: flex-start;
         color: $off-white;
         margin: 8px 0px 8px 0px;
@@ -444,7 +391,6 @@ main
     a
     {
         text-decoration: none;
-        display: flex;
         justify-content: center;
         margin-bottom: 10px;
         cursor: pointer;
@@ -459,16 +405,12 @@ main
 {
     height: 100%;
     margin-top: 0;
-    display: flex;
     flex-direction: column;
-    align-items: center;
     background: $secondary-website-theme;
     border-radius: 10px;
     h2, p, a
     {
         width: 90%;
-        display: flex;
-        align-items: center;
         justify-content: flex-start;
         color: $off-white;
         margin: 8px 0px 8px 0px;
@@ -477,7 +419,6 @@ main
     a
     {
         text-decoration: none;
-        display: flex;
         justify-content: center;
         margin-bottom: 10px;
         cursor: pointer;
@@ -487,4 +428,56 @@ main
             text-shadow: 2px 2px #000;
         }
     }
+}
+
+/* --------------- footer --------------- */
+footer,
+.social-links
+{
+    justify-content: center;
+    flex-direction: row;
+}
+
+.social-links
+{
+    text-decoration: none;
+    font-size: 25px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.ion-social-facebook
+{
+    font-size: 30px;
+}
+
+.social-links a
+{
+    padding: 0;
+    margin: 0 29px;
+}
+
+.ion-social-facebook,
+.ion-social-twitter,
+.ion-social-twitch
+{
+  -webkit-transition: color 0.2s;
+  transition: color 0.2s;
+}
+
+.ion-social-facebook:hover,
+.ion-social-facebook:active
+{
+    color: lighten($website-theme, 10%);
+}
+
+.ion-social-twitter:hover,
+.ion-social-twitter:active
+{
+    color: #55acee;
+}
+
+.ion-social-twitch:hover,
+.ion-social-twitch:active
+{
+    color: lighten(#6441a5, 10%);
 }

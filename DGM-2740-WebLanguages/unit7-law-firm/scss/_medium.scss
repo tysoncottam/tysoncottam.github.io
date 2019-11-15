@@ -1,3 +1,4 @@
+/* --------------- SASS --------------- */
 @for $i from 1 through 12 {
   $w:(($i/12)-0.02)*100%;
   .Mmedium-#{$i}{flex-basis: $w;}
@@ -7,8 +8,19 @@
   .medium-#{$i}{flex-basis: $w;}
 }
 
-/*--------------------------------------------------------------*/
+/* --------------- html & body --------------- */
 
+
+/* --------------- body --------------- */
+
+
+/* --------------- mixed --------------- */
+
+
+/* --------------- header --------------- */
+
+
+/* --------------- nav --------------- */
 nav
 {
     justify-content: space-around;
@@ -20,15 +32,10 @@ nav
     width: 65%;
 }
 
-.flex-container div
-{
-    flex-basis: 33%;
-}
-
-/*--------------------------------------------------------------*/
+/* ------------------------------ main ------------------------------ */
 main 
 {
-    width: 100vw;
+    width: 95vw;
 }
 
 .lawyers,
@@ -39,9 +46,16 @@ main
     width: 95vw;
 }
 
-.lawyers
+.lawyers,
+.cta,
+.blogs
 {
     justify-content: space-between;
+}
+
+/* --------------- lawyers --------------- */
+.lawyers
+{
     margin: 30px 0px 0px 0px;
     div 
     {
@@ -50,10 +64,10 @@ main
     }
 }
 
-.cta {
-  align-items: center;
-  justify-content: space-between;
-  margin: 20px 0px 20px 0px;
+/* --------------- cta --------------- */
+.cta 
+{
+    margin: 20px 0px 20px 0px;
     button,
     .large-4 
     {   
@@ -62,18 +76,13 @@ main
     }
 }
 
-.blogs {
-    justify-content: space-between;
-    div 
-    {
-        margin-bottom: 20px;
-    }
+/* --------------- blogs --------------- */
+.blogs div
+{
+    margin-bottom: 20px;
 }
 
-.tip-faq {
-  width: 95vw;
-}
-
+/* --------------- tip-faq --------------- */
 .faq 
 {
     margin-top: 20px;
@@ -83,3 +92,4 @@ main
     }
 }
 
+/* --------------- footer --------------- */
