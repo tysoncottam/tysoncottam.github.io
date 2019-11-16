@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<!------------------------------ head ------------------------------>
+    <head>
+        <!--------------- metas --------------->
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+        <!--------------- styles --------------->
+        <link href="style.css" rel="stylesheet">
+
+        <!--------------- google fonts --------------->
+        <link href="https://fonts.googleapis.com/css?family=Lato:300,400&display=swap" rel="stylesheet">
+
+
+        <!--------------- title --------------->
+        <title>Gooey Animation</title>
+    </head>
+
+<!------------------------------ body ------------------------------>
+    <body>
+        <div class="drop-down">
+            <button>DropDown</button>
+            <ul>
+                <li><a href="#">Projects</a></li>
+                <li><a href="#">Bio</a></li>
+                <li><a href="#">Interests</a></li>
+                <li><a href="#">Resume</a></li>
+            </ul>
+        </div>
+        
+        <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+        <script>
+            $(document).ready(function(){
+                $('button').click(function(){
+                    $('ul').toggleClass('active')
+                })
+            })
+        </script>
+    </body>
+</html>
