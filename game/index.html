@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Tower Defense</title>
+<title>Tower Defense v1.5</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -50,6 +50,14 @@
   }
   .btn:active, .btn.active { background: #0f3460; }
   .btn:disabled { opacity: 0.4; }
+  #version {
+    position: fixed;
+    bottom: 4px;
+    right: 8px;
+    font-size: 11px;
+    color: #444;
+    pointer-events: none;
+  }
   #message {
     position: absolute;
     top: 50%;
@@ -80,6 +88,7 @@
   <button class="btn" id="startWaveBtn">Send Wave</button>
 </div>
 <div id="message"></div>
+<div id="version">v1.5</div>
 
 <script>
 // ============ SETUP ============
