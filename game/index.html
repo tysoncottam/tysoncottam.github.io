@@ -49,6 +49,7 @@
     transition: background 0.15s;
   }
   .btn:active, .btn.active { background: #0f3460; }
+  .btn:disabled { opacity: 0.4; }
   #message {
     position: absolute;
     top: 50%;
@@ -75,6 +76,7 @@
   <button class="btn active" data-tower="basic">Basic (25g)</button>
   <button class="btn" data-tower="sniper">Sniper (50g)</button>
   <button class="btn" data-tower="rapid">Rapid (40g)</button>
+  <button class="btn" id="undoBtn" disabled>Undo</button>
   <button class="btn" id="startWaveBtn">Send Wave</button>
 </div>
 <div id="message"></div>
@@ -87,7 +89,6 @@ const ctx = canvas.getContext('2d');
 function resize() {
   const maxW = Math.min(window.innerWidth - 16, 480);
   const maxH = Math.min(window.innerHeight - 120, 640);
-  // Keep 3:4 aspect ratio
   let w = maxW;
   let h = w * (4/3);
   if (h > maxH) { h = maxH; w = h * (3/4); }
@@ -102,19 +103,16 @@ const COLS = Math.floor(canvas.width / TILE);
 const ROWS = Math.floor(canvas.height / TILE);
 
 // ============ PATH ============
-// Path defined as waypoints (col, row) - enemies follow this
 const pathPoints = [
   [0, 2], [3, 2], [3, 5], [8, 5], [8, 2], [11, 2],
   [11, 8], [4, 8], [4, 11], [8, 11], [8, 14], [11, 14]
 ];
 
-// Convert to pixel coords (center of tile)
 const waypoints = pathPoints.map(([c, r]) => ({
   x: c * TILE + TILE / 2,
   y: r * TILE + TILE / 2
 }));
 
-// Mark path tiles for collision
 const pathTiles = new Set();
 for (let i = 0; i < pathPoints.length - 1; i++) {
   const [c1, r1] = pathPoints[i];
@@ -140,6 +138,9 @@ const towers = [];
 const enemies = [];
 const projectiles = [];
 
+// Towers placed this round (before wave sent) — undoable
+const undoStack = [];
+
 const towerTypes = {
   basic:  { cost: 25, range: TILE * 2.8, damage: 1, fireRate: 60, color: '#4ecca3', radius: TILE * 0.35 },
   sniper: { cost: 50, range: TILE * 4.5, damage: 3, fireRate: 120, color: '#e94560', radius: TILE * 0.35 },
@@ -148,10 +149,18 @@ const towerTypes = {
 
 let selectedTower = 'basic';
 
-// Tower occupied tiles
 const occupiedTiles = new Set();
 
+// ============ DRAG STATE ============
+let dragging = false;       // currently dragging a tower preview
+let dragTower = null;       // { type, col, row } — snapped position
+let dragPixel = { x: 0, y: 0 }; // raw finger position
+let dragValid = false;      // is current position a valid placement?
+let dragCharged = false;    // has gold been deducted for this drag?
+
 // ============ UI ============
+const undoBtn = document.getElementById('undoBtn');
+
 document.querySelectorAll('[data-tower]').forEach(btn => {
   btn.addEventListener('click', () => {
     selectedTower = btn.dataset.tower;
@@ -161,6 +170,7 @@ document.querySelectorAll('[data-tower]').forEach(btn => {
 });
 
 document.getElementById('startWaveBtn').addEventListener('click', startWave);
+undoBtn.addEventListener('click', undoTower);
 
 function showMessage(text, duration = 1500) {
   const el = document.getElementById('message');
@@ -172,7 +182,22 @@ function showMessage(text, duration = 1500) {
 function updateHUD() {
   document.getElementById('livesDisplay').innerHTML = `&#10084; ${lives}`;
   document.getElementById('goldDisplay').innerHTML = `&#9733; ${gold}`;
-  document.getElementById('waveDisplay').textContent = `Wave: ${wave}`;
+  document.getElementById('waveDisplay').textContent = `Wave: ${wave || 1}`;
+  undoBtn.disabled = undoStack.length === 0;
+}
+
+// ============ UNDO ============
+function undoTower() {
+  if (undoStack.length === 0) return;
+  const entry = undoStack.pop();
+  // Remove tower from towers array
+  const idx = towers.indexOf(entry.tower);
+  if (idx !== -1) towers.splice(idx, 1);
+  // Free tile
+  occupiedTiles.delete(entry.key);
+  // Refund gold
+  gold += entry.cost;
+  updateHUD();
 }
 
 // ============ WAVES ============
@@ -183,6 +208,8 @@ function startWave() {
   enemiesSpawned = 0;
   enemiesToSpawn = 5 + wave * 3;
   spawnTimer = 0;
+  // Lock in all towers — clear undo stack
+  undoStack.length = 0;
   updateHUD();
 }
 
@@ -199,47 +226,103 @@ function spawnEnemy() {
   });
 }
 
-// ============ PLACING TOWERS ============
-function placeTower(px, py) {
-  if (gameOver) return;
-  const col = Math.floor(px / TILE);
-  const row = Math.floor(py / TILE);
-  const key = `${col},${row}`;
-
-  if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return;
-  if (pathTiles.has(key) || occupiedTiles.has(key)) return;
-
-  const type = towerTypes[selectedTower];
-  if (gold < type.cost) { showMessage('Not enough gold!'); return; }
-
-  gold -= type.cost;
-  occupiedTiles.add(key);
-  towers.push({
-    x: col * TILE + TILE / 2,
-    y: row * TILE + TILE / 2,
-    type: selectedTower,
-    ...type,
-    cooldown: 0,
-  });
-  updateHUD();
-}
-
-// Touch / click handling
+// ============ DRAG & PLACE ============
 function getCanvasPos(e) {
   const rect = canvas.getBoundingClientRect();
-  const touch = e.touches ? e.touches[0] : e;
+  const touch = e.touches ? e.touches[0] : (e.changedTouches ? e.changedTouches[0] : e);
   return {
     x: (touch.clientX - rect.left) * (canvas.width / rect.width),
     y: (touch.clientY - rect.top) * (canvas.height / rect.height),
   };
 }
 
-canvas.addEventListener('click', e => { const p = getCanvasPos(e); placeTower(p.x, p.y); });
-canvas.addEventListener('touchstart', e => {
+function snapToGrid(px, py) {
+  const col = Math.floor(px / TILE);
+  const row = Math.floor(py / TILE);
+  return { col, row };
+}
+
+function isValidPlacement(col, row) {
+  if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return false;
+  const key = `${col},${row}`;
+  if (pathTiles.has(key) || occupiedTiles.has(key)) return false;
+  return true;
+}
+
+function onDragStart(e) {
+  if (gameOver) return;
   e.preventDefault();
   const p = getCanvasPos(e);
-  placeTower(p.x, p.y);
-});
+  const type = towerTypes[selectedTower];
+  if (gold < type.cost) { showMessage('Not enough gold!'); return; }
+
+  dragging = true;
+  dragCharged = false;
+  dragPixel = p;
+  const snap = snapToGrid(p.x, p.y);
+  dragTower = { type: selectedTower, col: snap.col, row: snap.row };
+  dragValid = isValidPlacement(snap.col, snap.row);
+}
+
+function onDragMove(e) {
+  if (!dragging) return;
+  e.preventDefault();
+  const p = getCanvasPos(e);
+  dragPixel = p;
+  // Offset upward so finger doesn't cover the tower
+  const offsetY = p.y - TILE * 1.5;
+  const snap = snapToGrid(p.x, offsetY);
+  dragTower.col = snap.col;
+  dragTower.row = snap.row;
+  dragValid = isValidPlacement(snap.col, snap.row);
+}
+
+function onDragEnd(e) {
+  if (!dragging) return;
+  e.preventDefault();
+  dragging = false;
+
+  if (!dragValid) {
+    dragTower = null;
+    return;
+  }
+
+  const col = dragTower.col;
+  const row = dragTower.row;
+  const key = `${col},${row}`;
+  const type = towerTypes[dragTower.type];
+
+  if (gold < type.cost) {
+    showMessage('Not enough gold!');
+    dragTower = null;
+    return;
+  }
+
+  gold -= type.cost;
+  occupiedTiles.add(key);
+  const tower = {
+    x: col * TILE + TILE / 2,
+    y: row * TILE + TILE / 2,
+    type: dragTower.type,
+    ...type,
+    cooldown: 0,
+  };
+  towers.push(tower);
+  undoStack.push({ tower, key, cost: type.cost });
+  updateHUD();
+
+  dragTower = null;
+}
+
+// Touch events
+canvas.addEventListener('touchstart', onDragStart);
+canvas.addEventListener('touchmove', onDragMove);
+canvas.addEventListener('touchend', onDragEnd);
+
+// Mouse events (for desktop testing)
+canvas.addEventListener('mousedown', onDragStart);
+canvas.addEventListener('mousemove', onDragMove);
+canvas.addEventListener('mouseup', onDragEnd);
 
 // ============ UPDATE ============
 function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
@@ -286,7 +369,6 @@ function update() {
   // Tower shooting
   for (const t of towers) {
     if (t.cooldown > 0) { t.cooldown--; continue; }
-    // Find closest enemy in range
     let target = null;
     let closest = Infinity;
     for (const e of enemies) {
@@ -309,7 +391,6 @@ function update() {
   // Move projectiles
   for (let i = projectiles.length - 1; i >= 0; i--) {
     const p = projectiles[i];
-    // Aim at target's current position
     if (p.target && p.target.hp > 0) {
       p.tx = p.target.x;
       p.ty = p.target.y;
@@ -318,7 +399,6 @@ function update() {
     const dy = p.ty - p.y;
     const d = Math.hypot(dx, dy);
     if (d < p.speed) {
-      // Hit
       if (p.target && p.target.hp > 0) {
         p.target.hp -= p.damage;
         if (p.target.hp <= 0) {
@@ -348,11 +428,11 @@ function update() {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Background grid
+  // Background
   ctx.fillStyle = '#16213e';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Draw grid lines (subtle)
+  // Grid lines
   ctx.strokeStyle = '#1a2744';
   ctx.lineWidth = 1;
   for (let c = 0; c <= COLS; c++) {
@@ -362,14 +442,14 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(0, r * TILE); ctx.lineTo(canvas.width, r * TILE); ctx.stroke();
   }
 
-  // Draw path
+  // Path tiles
   ctx.fillStyle = '#2a2a4a';
   for (const key of pathTiles) {
     const [c, r] = key.split(',').map(Number);
     ctx.fillRect(c * TILE, r * TILE, TILE, TILE);
   }
 
-  // Draw path direction line
+  // Path direction line
   ctx.strokeStyle = '#3a3a5a';
   ctx.lineWidth = 2;
   ctx.setLineDash([4, 4]);
@@ -381,9 +461,9 @@ function draw() {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Draw towers
+  // Towers
   for (const t of towers) {
-    // Range circle (subtle)
+    // Range circle
     ctx.beginPath();
     ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2);
     ctx.fillStyle = t.color + '10';
@@ -399,9 +479,42 @@ function draw() {
     ctx.stroke();
   }
 
-  // Draw enemies
+  // ---- DRAG PREVIEW ----
+  if (dragging && dragTower) {
+    const px = dragTower.col * TILE + TILE / 2;
+    const py = dragTower.row * TILE + TILE / 2;
+    const type = towerTypes[dragTower.type];
+
+    // Highlight tile
+    ctx.fillStyle = dragValid ? 'rgba(78, 204, 163, 0.25)' : 'rgba(233, 69, 96, 0.25)';
+    ctx.fillRect(dragTower.col * TILE, dragTower.row * TILE, TILE, TILE);
+    ctx.strokeStyle = dragValid ? '#4ecca3' : '#e94560';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(dragTower.col * TILE, dragTower.row * TILE, TILE, TILE);
+
+    // Range circle preview
+    ctx.beginPath();
+    ctx.arc(px, py, type.range, 0, Math.PI * 2);
+    ctx.fillStyle = (dragValid ? type.color : '#e94560') + '15';
+    ctx.fill();
+    ctx.strokeStyle = (dragValid ? type.color : '#e94560') + '40';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Ghost tower
+    ctx.globalAlpha = 0.7;
+    ctx.beginPath();
+    ctx.arc(px, py, type.radius, 0, Math.PI * 2);
+    ctx.fillStyle = dragValid ? type.color : '#e94560';
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  // Enemies
   for (const e of enemies) {
-    // Shadow
     ctx.beginPath();
     ctx.arc(e.x, e.y, TILE * 0.35, 0, Math.PI * 2);
     ctx.fillStyle = '#e94560';
@@ -418,7 +531,7 @@ function draw() {
     ctx.fillRect(barX, barY, barW * (e.hp / e.maxHp), barH);
   }
 
-  // Draw projectiles
+  // Projectiles
   for (const p of projectiles) {
     ctx.beginPath();
     ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
@@ -435,7 +548,7 @@ function loop() {
 }
 
 updateHUD();
-showMessage('Place towers, then send a wave!', 2500);
+showMessage('Drag towers onto the grid!', 2500);
 loop();
 </script>
 </body>
