@@ -93,33 +93,120 @@
             font-size: 14px;
         }
 
-        .filter-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 12px;
+        .filter-section {
+            margin-top: 14px;
         }
 
-        .filter-group { display: flex; flex-direction: column; gap: 4px; }
-
-        .filter-group.full-width { grid-column: 1 / -1; }
-
-        .filter-group label {
+        .filter-section-label {
             font-size: 12px;
             color: #8b949e;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
 
-        .filter-group select,
-        .filter-group input {
-            padding: 10px;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            background: #0d1117;
-            color: #e6edf3;
-            font-size: 14px;
+        /* Toggle chips */
+        .chip-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
         }
+
+        .chip {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .chip.on {
+            background: #1f6feb;
+            color: #fff;
+            border-color: #1f6feb;
+        }
+
+        .chip.off {
+            background: #21262d;
+            color: #484f58;
+            border-color: #30363d;
+            text-decoration: line-through;
+        }
+
+        /* Score sliders */
+        .score-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .score-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .score-row .platform-label {
+            font-size: 13px;
+            font-weight: 600;
+            min-width: 70px;
+            flex-shrink: 0;
+        }
+
+        .score-row .platform-label.imdb { color: #fcd34d; }
+        .score-row .platform-label.rt { color: #fa320a; }
+        .score-row .platform-label.meta { color: #66cc33; }
+
+        .score-row input[type="range"] {
+            flex: 1;
+            accent-color: #58a6ff;
+            height: 20px;
+        }
+
+        .score-row .score-value {
+            font-size: 13px;
+            font-weight: 600;
+            min-width: 38px;
+            text-align: right;
+            color: #e6edf3;
+        }
+
+        .score-row .score-off {
+            color: #484f58;
+        }
+
+        .score-toggle {
+            width: 36px;
+            height: 22px;
+            border-radius: 11px;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            transition: background 0.15s;
+        }
+
+        .score-toggle.on { background: #238636; }
+        .score-toggle.off { background: #30363d; }
+
+        .score-toggle::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #fff;
+            top: 3px;
+            transition: left 0.15s;
+        }
+
+        .score-toggle.on::after { left: 17px; }
+        .score-toggle.off::after { left: 3px; }
 
         /* Results */
         .status {
@@ -184,25 +271,11 @@
             border: 1px solid #374151;
         }
 
-        .badge.rt {
-            background: #7f1d1d;
-            color: #fca5a5;
-        }
-
-        .badge.rt.fresh {
-            background: #14532d;
-            color: #86efac;
-        }
-
-        .badge.genre {
-            background: #1e1b4b;
-            color: #a5b4fc;
-        }
-
-        .badge.imdb {
-            background: #422006;
-            color: #fcd34d;
-        }
+        .badge.rt { background: #7f1d1d; color: #fca5a5; }
+        .badge.rt.fresh { background: #14532d; color: #86efac; }
+        .badge.genre { background: #1e1b4b; color: #a5b4fc; }
+        .badge.imdb { background: #422006; color: #fcd34d; }
+        .badge.meta { background: #1a2e05; color: #a3e635; }
 
         /* Detail modal */
         .modal-overlay {
@@ -244,10 +317,7 @@
             border-radius: 8px;
         }
 
-        .modal h2 {
-            font-size: 1.2rem;
-            margin-bottom: 4px;
-        }
+        .modal h2 { font-size: 1.2rem; margin-bottom: 4px; }
 
         .modal .detail-meta {
             color: #8b949e;
@@ -272,14 +342,6 @@
 
         .detail-row .label { color: #8b949e; }
         .detail-row .value { color: #e6edf3; text-align: right; max-width: 60%; }
-
-        .back-link {
-            display: inline-block;
-            margin-bottom: 12px;
-            color: #58a6ff;
-            text-decoration: none;
-            font-size: 14px;
-        }
 
         .load-more {
             display: block;
@@ -327,55 +389,76 @@
 
     <details class="filters" open>
         <summary>Filters</summary>
-        <div class="filter-grid">
-            <div class="filter-group">
-                <label>Content Rating</label>
-                <select id="filterRating">
-                    <option value="">Any</option>
-                    <option value="G">G</option>
-                    <option value="PG">PG</option>
-                    <option value="PG-13">PG-13</option>
-                    <option value="R">R</option>
-                    <option value="NC-17">NC-17</option>
-                    <option value="TV-Y">TV-Y</option>
-                    <option value="TV-G">TV-G</option>
-                    <option value="TV-PG">TV-PG</option>
-                    <option value="TV-14">TV-14</option>
-                    <option value="TV-MA">TV-MA</option>
-                    <option value="Not Rated">Not Rated</option>
-                </select>
+
+        <!-- Content Rating toggles -->
+        <div class="filter-section">
+            <div class="filter-section-label">Content Rating (tap to exclude)</div>
+            <div class="chip-group" id="ratingChips">
+                <span class="chip on" data-value="G">G</span>
+                <span class="chip on" data-value="PG">PG</span>
+                <span class="chip on" data-value="PG-13">PG-13</span>
+                <span class="chip on" data-value="R">R</span>
+                <span class="chip on" data-value="NC-17">NC-17</span>
+                <span class="chip on" data-value="TV-Y">TV-Y</span>
+                <span class="chip on" data-value="TV-G">TV-G</span>
+                <span class="chip on" data-value="TV-PG">TV-PG</span>
+                <span class="chip on" data-value="TV-14">TV-14</span>
+                <span class="chip on" data-value="TV-MA">TV-MA</span>
+                <span class="chip on" data-value="Not Rated">NR</span>
+                <span class="chip on" data-value="Unrated">Unrated</span>
             </div>
-            <div class="filter-group">
-                <label>Min Rotten Tomatoes</label>
-                <input type="number" id="filterRT" min="0" max="100" placeholder="e.g. 75" step="5">
+        </div>
+
+        <!-- Genre toggles -->
+        <div class="filter-section">
+            <div class="filter-section-label">Genre (tap to exclude)</div>
+            <div class="chip-group" id="genreChips">
+                <span class="chip on" data-value="Action">Action</span>
+                <span class="chip on" data-value="Adventure">Adventure</span>
+                <span class="chip on" data-value="Animation">Animation</span>
+                <span class="chip on" data-value="Biography">Biography</span>
+                <span class="chip on" data-value="Comedy">Comedy</span>
+                <span class="chip on" data-value="Crime">Crime</span>
+                <span class="chip on" data-value="Documentary">Documentary</span>
+                <span class="chip on" data-value="Drama">Drama</span>
+                <span class="chip on" data-value="Family">Family</span>
+                <span class="chip on" data-value="Fantasy">Fantasy</span>
+                <span class="chip on" data-value="History">History</span>
+                <span class="chip on" data-value="Horror">Horror</span>
+                <span class="chip on" data-value="Music">Music</span>
+                <span class="chip on" data-value="Musical">Musical</span>
+                <span class="chip on" data-value="Mystery">Mystery</span>
+                <span class="chip on" data-value="Romance">Romance</span>
+                <span class="chip on" data-value="Sci-Fi">Sci-Fi</span>
+                <span class="chip on" data-value="Sport">Sport</span>
+                <span class="chip on" data-value="Thriller">Thriller</span>
+                <span class="chip on" data-value="War">War</span>
+                <span class="chip on" data-value="Western">Western</span>
             </div>
-            <div class="filter-group full-width">
-                <label>Genre</label>
-                <select id="filterGenre">
-                    <option value="">Any</option>
-                    <option value="Action">Action</option>
-                    <option value="Adventure">Adventure</option>
-                    <option value="Animation">Animation</option>
-                    <option value="Biography">Biography</option>
-                    <option value="Comedy">Comedy</option>
-                    <option value="Crime">Crime</option>
-                    <option value="Documentary">Documentary</option>
-                    <option value="Drama">Drama</option>
-                    <option value="Family">Family</option>
-                    <option value="Fantasy">Fantasy</option>
-                    <option value="Film-Noir">Film-Noir</option>
-                    <option value="History">History</option>
-                    <option value="Horror">Horror</option>
-                    <option value="Music">Music</option>
-                    <option value="Musical">Musical</option>
-                    <option value="Mystery">Mystery</option>
-                    <option value="Romance">Romance</option>
-                    <option value="Sci-Fi">Sci-Fi</option>
-                    <option value="Sport">Sport</option>
-                    <option value="Thriller">Thriller</option>
-                    <option value="War">War</option>
-                    <option value="Western">Western</option>
-                </select>
+        </div>
+
+        <!-- Platform minimum scores -->
+        <div class="filter-section">
+            <div class="filter-section-label">Minimum Scores (toggle on to filter)</div>
+            <div class="score-filters">
+                <div class="score-row">
+                    <button class="score-toggle off" id="imdbToggle"></button>
+                    <span class="platform-label imdb">IMDb</span>
+                    <input type="range" id="imdbSlider" min="0" max="10" step="0.5" value="5" disabled>
+                    <span class="score-value score-off" id="imdbValue">OFF</span>
+                </div>
+                <div class="score-row">
+                    <button class="score-toggle off" id="rtToggle"></button>
+                    <span class="platform-label rt">RT</span>
+                    <input type="range" id="rtSlider" min="0" max="100" step="5" value="60" disabled>
+                    <span class="score-value score-off" id="rtValue">OFF</span>
+                </div>
+                <div class="score-row">
+                    <button class="score-toggle off" id="metaToggle"></button>
+                    <span class="platform-label meta">Metacritic</span>
+                    <input type="range" id="metaSlider" min="0" max="100" step="5" value="50" disabled>
+                    <span class="score-value score-off" id="metaValue">OFF</span>
+                </div>
             </div>
         </div>
     </details>
@@ -403,16 +486,50 @@
         const modal = document.getElementById('modal');
         const modalContent = document.getElementById('modalContent');
         const modalClose = document.getElementById('modalClose');
-        const filterRating = document.getElementById('filterRating');
-        const filterRT = document.getElementById('filterRT');
-        const filterGenre = document.getElementById('filterGenre');
 
         let currentType = '';
         let currentQuery = '';
         let currentPage = 1;
         let totalResults = 0;
 
-        // Type toggle
+        // --- Chip toggles (ratings & genres) ---
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                chip.classList.toggle('on');
+                chip.classList.toggle('off');
+            });
+        });
+
+        // --- Score toggle + slider wiring ---
+        function wireScore(toggleId, sliderId, valueId) {
+            const toggle = document.getElementById(toggleId);
+            const slider = document.getElementById(sliderId);
+            const valueEl = document.getElementById(valueId);
+
+            toggle.addEventListener('click', () => {
+                const isOn = toggle.classList.contains('on');
+                toggle.classList.toggle('on', !isOn);
+                toggle.classList.toggle('off', isOn);
+                slider.disabled = isOn;
+                if (isOn) {
+                    valueEl.textContent = 'OFF';
+                    valueEl.classList.add('score-off');
+                } else {
+                    valueEl.textContent = slider.value + (sliderId === 'imdbSlider' ? '' : '%');
+                    valueEl.classList.remove('score-off');
+                }
+            });
+
+            slider.addEventListener('input', () => {
+                valueEl.textContent = slider.value + (sliderId === 'imdbSlider' ? '' : '%');
+            });
+        }
+
+        wireScore('imdbToggle', 'imdbSlider', 'imdbValue');
+        wireScore('rtToggle', 'rtSlider', 'rtValue');
+        wireScore('metaToggle', 'metaSlider', 'metaValue');
+
+        // --- Type toggle ---
         document.querySelectorAll('.type-toggle button').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelector('.type-toggle .active').classList.remove('active');
@@ -421,7 +538,7 @@
             });
         });
 
-        // Search
+        // --- Search ---
         searchBtn.addEventListener('click', () => doSearch());
         searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
 
@@ -454,7 +571,6 @@
 
                 totalResults = parseInt(data.totalResults, 10);
 
-                // Fetch full details for each result to get ratings/genre
                 const details = await Promise.all(
                     data.Search.map(item => fetchDetails(item.imdbID))
                 );
@@ -462,7 +578,7 @@
                 const filtered = applyFilters(details);
 
                 if (currentPage === 1 && filtered.length === 0 && details.length > 0) {
-                    statusDiv.textContent = `Found results but none match your filters. Try adjusting filters or load more.`;
+                    statusDiv.textContent = 'Results found but all excluded by your filters. Try toggling some back on or load more.';
                 } else if (currentPage === 1) {
                     statusDiv.textContent = `Showing results for "${currentQuery}" (${totalResults} total found)`;
                 }
@@ -485,29 +601,78 @@
             return resp.json();
         }
 
+        // --- Helpers to read scores ---
         function getRT(item) {
             if (!item.Ratings) return null;
             const rt = item.Ratings.find(r => r.Source === 'Rotten Tomatoes');
-            if (!rt) return null;
-            return parseInt(rt.Value, 10);
+            return rt ? parseInt(rt.Value, 10) : null;
         }
 
+        function getMeta(item) {
+            if (!item.Metascore || item.Metascore === 'N/A') return null;
+            return parseInt(item.Metascore, 10);
+        }
+
+        function getIMDb(item) {
+            if (!item.imdbRating || item.imdbRating === 'N/A') return null;
+            return parseFloat(item.imdbRating);
+        }
+
+        // --- Filtering ---
         function applyFilters(items) {
-            const rating = filterRating.value;
-            const minRT = filterRT.value ? parseInt(filterRT.value, 10) : null;
-            const genre = filterGenre.value;
+            // Collect enabled ratings
+            const allowedRatings = new Set();
+            document.querySelectorAll('#ratingChips .chip.on').forEach(c => allowedRatings.add(c.dataset.value));
+
+            // Collect enabled genres
+            const allowedGenres = new Set();
+            document.querySelectorAll('#genreChips .chip.on').forEach(c => allowedGenres.add(c.dataset.value));
+
+            // Score thresholds
+            const imdbOn = document.getElementById('imdbToggle').classList.contains('on');
+            const imdbMin = imdbOn ? parseFloat(document.getElementById('imdbSlider').value) : null;
+
+            const rtOn = document.getElementById('rtToggle').classList.contains('on');
+            const rtMin = rtOn ? parseInt(document.getElementById('rtSlider').value, 10) : null;
+
+            const metaOn = document.getElementById('metaToggle').classList.contains('on');
+            const metaMin = metaOn ? parseInt(document.getElementById('metaSlider').value, 10) : null;
 
             return items.filter(item => {
-                if (rating && item.Rated !== rating) return false;
-                if (genre && (!item.Genre || !item.Genre.includes(genre))) return false;
-                if (minRT !== null) {
-                    const rt = getRT(item);
-                    if (rt === null || rt < minRT) return false;
+                // Content rating filter
+                const itemRated = item.Rated || 'Not Rated';
+                if (!allowedRatings.has(itemRated)) return false;
+
+                // Genre filter — exclude if ALL of the item's genres are turned off
+                if (item.Genre && item.Genre !== 'N/A') {
+                    const itemGenres = item.Genre.split(', ');
+                    const hasAllowed = itemGenres.some(g => allowedGenres.has(g));
+                    if (!hasAllowed) return false;
                 }
+
+                // IMDb minimum
+                if (imdbMin !== null) {
+                    const score = getIMDb(item);
+                    if (score === null || score < imdbMin) return false;
+                }
+
+                // RT minimum
+                if (rtMin !== null) {
+                    const score = getRT(item);
+                    if (score === null || score < rtMin) return false;
+                }
+
+                // Metacritic minimum
+                if (metaMin !== null) {
+                    const score = getMeta(item);
+                    if (score === null || score < metaMin) return false;
+                }
+
                 return true;
             });
         }
 
+        // --- Card rendering ---
         function createCard(item) {
             const card = document.createElement('div');
             card.className = 'card';
@@ -522,8 +687,14 @@
                 ? `<span class="badge rt ${rt >= 60 ? 'fresh' : ''}">${rt}% RT</span>`
                 : '';
 
-            const imdbBadge = item.imdbRating && item.imdbRating !== 'N/A'
-                ? `<span class="badge imdb">IMDb ${item.imdbRating}</span>`
+            const imdbScore = getIMDb(item);
+            const imdbBadge = imdbScore !== null
+                ? `<span class="badge imdb">IMDb ${imdbScore}</span>`
+                : '';
+
+            const metaScore = getMeta(item);
+            const metaBadge = metaScore !== null
+                ? `<span class="badge meta">Meta ${metaScore}</span>`
                 : '';
 
             const genres = item.Genre && item.Genre !== 'N/A'
@@ -539,6 +710,7 @@
                         <span class="badge rating">${item.Rated || 'NR'}</span>
                         ${imdbBadge}
                         ${rtBadge}
+                        ${metaBadge}
                         ${genres}
                     </div>
                 </div>
@@ -546,9 +718,9 @@
             return card;
         }
 
+        // --- Detail modal ---
         function showDetail(item) {
             const poster = item.Poster && item.Poster !== 'N/A' ? item.Poster : '';
-            const rt = getRT(item);
 
             let ratingsHTML = '';
             if (item.Ratings) {
@@ -575,7 +747,6 @@
             modal.classList.add('open');
         }
 
-        // Close modal
         modalClose.addEventListener('click', () => modal.classList.remove('open'));
         modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
 
