@@ -137,6 +137,107 @@
             text-decoration: line-through;
         }
 
+        /* Year range slider */
+        .year-range {
+            margin-top: 8px;
+        }
+
+        .year-inputs {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .year-inputs input[type="number"] {
+            width: 72px;
+            padding: 8px;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            background: #0d1117;
+            color: #e6edf3;
+            font-size: 14px;
+            text-align: center;
+            -moz-appearance: textfield;
+        }
+
+        .year-inputs input[type="number"]::-webkit-inner-spin-button,
+        .year-inputs input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .year-inputs .year-dash {
+            color: #8b949e;
+            font-weight: 600;
+        }
+
+        .dual-range {
+            position: relative;
+            height: 32px;
+        }
+
+        .dual-range input[type="range"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 32px;
+            pointer-events: none;
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+        }
+
+        .dual-range input[type="range"]::-webkit-slider-runnable-track {
+            height: 4px;
+            border-radius: 2px;
+            background: transparent;
+        }
+
+        .dual-range input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #58a6ff;
+            border: 2px solid #0d1117;
+            cursor: pointer;
+            pointer-events: all;
+            margin-top: -9px;
+        }
+
+        .dual-range input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #58a6ff;
+            border: 2px solid #0d1117;
+            cursor: pointer;
+            pointer-events: all;
+        }
+
+        .dual-range .track-bg {
+            position: absolute;
+            top: 14px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: 2px;
+            background: #30363d;
+            pointer-events: none;
+        }
+
+        .dual-range .track-fill {
+            position: absolute;
+            top: 14px;
+            height: 4px;
+            border-radius: 2px;
+            background: #58a6ff;
+            pointer-events: none;
+        }
+
         /* Score sliders */
         .score-filters {
             display: flex;
@@ -437,6 +538,24 @@
             </div>
         </div>
 
+        <!-- Year range -->
+        <div class="filter-section">
+            <div class="filter-section-label">Year Range</div>
+            <div class="year-range">
+                <div class="year-inputs">
+                    <input type="number" id="yearMinInput" min="1900" max="2026" value="1900">
+                    <span class="year-dash">&ndash;</span>
+                    <input type="number" id="yearMaxInput" min="1900" max="2026" value="2026">
+                </div>
+                <div class="dual-range">
+                    <div class="track-bg"></div>
+                    <div class="track-fill" id="yearTrackFill"></div>
+                    <input type="range" id="yearMinSlider" min="1900" max="2026" value="1900">
+                    <input type="range" id="yearMaxSlider" min="1900" max="2026" value="2026">
+                </div>
+            </div>
+        </div>
+
         <!-- Platform minimum scores -->
         <div class="filter-section">
             <div class="filter-section-label">Minimum Scores (toggle on to filter)</div>
@@ -528,6 +647,58 @@
         wireScore('imdbToggle', 'imdbSlider', 'imdbValue');
         wireScore('rtToggle', 'rtSlider', 'rtValue');
         wireScore('metaToggle', 'metaSlider', 'metaValue');
+
+        // --- Year range dual slider ---
+        const yearMinSlider = document.getElementById('yearMinSlider');
+        const yearMaxSlider = document.getElementById('yearMaxSlider');
+        const yearMinInput = document.getElementById('yearMinInput');
+        const yearMaxInput = document.getElementById('yearMaxInput');
+        const yearTrackFill = document.getElementById('yearTrackFill');
+
+        function updateYearTrack() {
+            const min = parseInt(yearMinSlider.min);
+            const max = parseInt(yearMinSlider.max);
+            const lo = parseInt(yearMinSlider.value);
+            const hi = parseInt(yearMaxSlider.value);
+            const leftPct = ((lo - min) / (max - min)) * 100;
+            const rightPct = ((hi - min) / (max - min)) * 100;
+            yearTrackFill.style.left = leftPct + '%';
+            yearTrackFill.style.width = (rightPct - leftPct) + '%';
+        }
+
+        yearMinSlider.addEventListener('input', () => {
+            if (parseInt(yearMinSlider.value) > parseInt(yearMaxSlider.value)) {
+                yearMinSlider.value = yearMaxSlider.value;
+            }
+            yearMinInput.value = yearMinSlider.value;
+            updateYearTrack();
+        });
+
+        yearMaxSlider.addEventListener('input', () => {
+            if (parseInt(yearMaxSlider.value) < parseInt(yearMinSlider.value)) {
+                yearMaxSlider.value = yearMinSlider.value;
+            }
+            yearMaxInput.value = yearMaxSlider.value;
+            updateYearTrack();
+        });
+
+        yearMinInput.addEventListener('change', () => {
+            let v = parseInt(yearMinInput.value) || 1900;
+            v = Math.max(1900, Math.min(v, parseInt(yearMaxSlider.value)));
+            yearMinInput.value = v;
+            yearMinSlider.value = v;
+            updateYearTrack();
+        });
+
+        yearMaxInput.addEventListener('change', () => {
+            let v = parseInt(yearMaxInput.value) || 2026;
+            v = Math.min(2026, Math.max(v, parseInt(yearMinSlider.value)));
+            yearMaxInput.value = v;
+            yearMaxSlider.value = v;
+            updateYearTrack();
+        });
+
+        updateYearTrack();
 
         // --- Type toggle ---
         document.querySelectorAll('.type-toggle button').forEach(btn => {
@@ -638,7 +809,20 @@
             const metaOn = document.getElementById('metaToggle').classList.contains('on');
             const metaMin = metaOn ? parseInt(document.getElementById('metaSlider').value, 10) : null;
 
+            // Year range
+            const yearMin = parseInt(document.getElementById('yearMinSlider').value);
+            const yearMax = parseInt(document.getElementById('yearMaxSlider').value);
+
             return items.filter(item => {
+                // Year filter — parse the first 4-digit year from the Year field
+                if (item.Year && item.Year !== 'N/A') {
+                    const yearMatch = item.Year.match(/\d{4}/);
+                    if (yearMatch) {
+                        const yr = parseInt(yearMatch[0], 10);
+                        if (yr < yearMin || yr > yearMax) return false;
+                    }
+                }
+
                 // Content rating filter
                 const itemRated = item.Rated || 'Not Rated';
                 if (!allowedRatings.has(itemRated)) return false;
