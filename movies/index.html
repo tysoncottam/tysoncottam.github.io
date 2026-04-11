@@ -197,7 +197,41 @@
         .score-row input[type="range"] { flex: 1; accent-color: #58a6ff; height: 20px; }
 
         .score-row .score-value {
-            font-size: 14px; font-weight: 600; min-width: 32px; text-align: right; color: #e6edf3;
+            font-size: 14px; font-weight: 600; min-width: 38px; text-align: right; color: #e6edf3;
+        }
+
+        .score-row .score-off { color: #484f58; }
+
+        .score-row .platform-label {
+            font-size: 13px; font-weight: 600; min-width: 70px; flex-shrink: 0;
+        }
+
+        .score-row .platform-label.imdb { color: #fcd34d; }
+        .score-row .platform-label.rt { color: #fa320a; }
+        .score-row .platform-label.meta { color: #66cc33; }
+
+        .score-toggle {
+            width: 36px; height: 22px; border-radius: 11px;
+            border: none; cursor: pointer; position: relative;
+            flex-shrink: 0; transition: background 0.15s;
+        }
+
+        .score-toggle.on { background: #238636; }
+        .score-toggle.off { background: #30363d; }
+
+        .score-toggle::after {
+            content: ''; position: absolute;
+            width: 16px; height: 16px; border-radius: 50%;
+            background: #fff; top: 3px; transition: left 0.15s;
+        }
+
+        .score-toggle.on::after { left: 17px; }
+        .score-toggle.off::after { left: 3px; }
+
+        .score-filters { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+
+        .omdb-note {
+            font-size: 11px; color: #484f58; margin-top: 6px; font-style: italic;
         }
 
         /* Sort bar */
@@ -404,13 +438,39 @@
             </div>
         </div>
 
-        <!-- Min Rating -->
+        <!-- Min TMDb Rating -->
         <div class="filter-section">
             <div class="filter-section-label">Minimum TMDb Rating</div>
             <div class="score-row">
                 <input type="range" id="ratingSlider" min="0" max="10" step="0.5" value="0">
                 <span class="score-value" id="ratingValue">Any</span>
             </div>
+        </div>
+
+        <!-- OMDb score filters -->
+        <div class="filter-section">
+            <div class="filter-section-label">Minimum Scores — IMDb / RT / Metacritic</div>
+            <div class="score-filters">
+                <div class="score-row">
+                    <button class="score-toggle off" id="imdbToggle"></button>
+                    <span class="platform-label imdb">IMDb</span>
+                    <input type="range" id="imdbSlider" min="0" max="10" step="0.5" value="7" disabled>
+                    <span class="score-value score-off" id="imdbValue">OFF</span>
+                </div>
+                <div class="score-row">
+                    <button class="score-toggle off" id="rtToggle"></button>
+                    <span class="platform-label rt">RT</span>
+                    <input type="range" id="rtSlider" min="0" max="100" step="5" value="75" disabled>
+                    <span class="score-value score-off" id="rtValue">OFF</span>
+                </div>
+                <div class="score-row">
+                    <button class="score-toggle off" id="metaToggle"></button>
+                    <span class="platform-label meta">Metacritic</span>
+                    <input type="range" id="metaSlider" min="0" max="100" step="5" value="60" disabled>
+                    <span class="score-value score-off" id="metaValue">OFF</span>
+                </div>
+            </div>
+            <div class="omdb-note">These fetch extra data per result and may take a moment.</div>
         </div>
     </details>
 
@@ -502,6 +562,41 @@
             const v = parseFloat(ratingSlider.value);
             ratingValue.textContent = v === 0 ? 'Any' : v.toFixed(1) + '+';
         });
+
+        // --- OMDb score toggle + slider wiring ---
+        function wireScore(toggleId, sliderId, valueId) {
+            const toggle = document.getElementById(toggleId);
+            const slider = document.getElementById(sliderId);
+            const valueEl = document.getElementById(valueId);
+
+            toggle.addEventListener('click', () => {
+                const isOn = toggle.classList.contains('on');
+                toggle.classList.toggle('on', !isOn);
+                toggle.classList.toggle('off', isOn);
+                slider.disabled = isOn;
+                if (isOn) {
+                    valueEl.textContent = 'OFF';
+                    valueEl.classList.add('score-off');
+                } else {
+                    valueEl.textContent = slider.value + (sliderId === 'imdbSlider' ? '' : '%');
+                    valueEl.classList.remove('score-off');
+                }
+            });
+
+            slider.addEventListener('input', () => {
+                valueEl.textContent = slider.value + (sliderId === 'imdbSlider' ? '' : '%');
+            });
+        }
+
+        wireScore('imdbToggle', 'imdbSlider', 'imdbValue');
+        wireScore('rtToggle', 'rtSlider', 'rtValue');
+        wireScore('metaToggle', 'metaSlider', 'metaValue');
+
+        function omdbFiltersActive() {
+            return document.getElementById('imdbToggle').classList.contains('on')
+                || document.getElementById('rtToggle').classList.contains('on')
+                || document.getElementById('metaToggle').classList.contains('on');
+        }
 
         // --- Year range dual slider ---
         const yearMinSlider = document.getElementById('yearMinSlider');
@@ -650,26 +745,61 @@
             }
 
             loadMoreBtn.style.display = 'none';
+            const useOmdb = omdbFiltersActive();
+            const MIN_RESULTS = 8;
+            let totalShown = resultsDiv.children.length;
+            let attempts = 0;
+            const maxAttempts = useOmdb ? 5 : 1;
+
             showLoading();
 
             try {
-                const url = buildURL(currentPage);
-                const resp = await fetch(url);
-                const data = await resp.json();
+                while (attempts < maxAttempts) {
+                    attempts++;
+                    const url = buildURL(currentPage);
+                    const resp = await fetch(url);
+                    const data = await resp.json();
 
-                totalPages = data.total_pages || 0;
-                const totalResults = data.total_results || 0;
+                    totalPages = data.total_pages || 0;
+                    const totalResults = data.total_results || 0;
 
-                if (!data.results || data.results.length === 0) {
-                    statusDiv.textContent = fresh
-                        ? 'No results match your filters. Try broadening them.'
-                        : 'No more results.';
-                } else {
-                    statusDiv.textContent = `${totalResults.toLocaleString()} titles found (page ${currentPage} of ${totalPages})`;
-                    data.results.forEach(item => resultsDiv.appendChild(createCard(item)));
+                    if (!data.results || data.results.length === 0) {
+                        if (totalShown === 0) {
+                            statusDiv.textContent = 'No results match your filters. Try broadening them.';
+                        } else {
+                            statusDiv.textContent = `${totalShown} titles shown (no more pages to check)`;
+                        }
+                        break;
+                    }
+
+                    let items = data.results;
+
+                    // If OMDb filters are active, enrich each result
+                    if (useOmdb) {
+                        statusDiv.querySelector('.loading-text').textContent =
+                            `Checking scores for page ${currentPage}...`;
+
+                        // Get IMDb IDs via TMDb external_ids for TV, or imdb_id for movies
+                        const enriched = await enrichWithOMDb(items);
+                        items = applyOMDbFilters(enriched);
+                    }
+
+                    items.forEach(item => resultsDiv.appendChild(createCard(item)));
+                    totalShown = resultsDiv.children.length;
+
+                    statusDiv.textContent = `${totalShown} titles shown (${totalResults.toLocaleString()} total before score filters)`;
+
+                    // If we have enough results or no more pages, stop
+                    if (totalShown >= MIN_RESULTS || currentPage >= totalPages) break;
+
+                    // Auto-load next page to fill results
+                    currentPage++;
                 }
 
                 loadMoreBtn.style.display = currentPage < totalPages ? 'block' : 'none';
+                if (totalShown === 0 && attempts > 0) {
+                    statusDiv.textContent = `Checked ${attempts} page(s) but no titles passed your score filters. Try lowering IMDb/RT/Metacritic minimums.`;
+                }
             } catch (err) {
                 statusDiv.textContent = 'Error fetching results. Check your connection.';
                 console.error(err);
@@ -677,6 +807,68 @@
 
             isLoading = false;
             applyBtn.disabled = false;
+        }
+
+        // --- Enrich TMDb results with OMDb data ---
+        async function enrichWithOMDb(tmdbItems) {
+            // Fetch TMDb details to get imdb_id, then OMDb data
+            const enriched = await Promise.all(tmdbItems.map(async (item) => {
+                try {
+                    // Get IMDb ID from TMDb
+                    const detailUrl = currentType === 'tv'
+                        ? `${BASE}/tv/${item.id}/external_ids?api_key=${API_KEY}`
+                        : `${BASE}/movie/${item.id}?api_key=${API_KEY}`;
+                    const detailResp = await fetch(detailUrl);
+                    const detail = await detailResp.json();
+                    const imdbID = detail.imdb_id;
+
+                    if (!imdbID) return { ...item, omdb: null };
+
+                    // Fetch OMDb
+                    const omdbResp = await fetch(`${OMDB_BASE}?apikey=${OMDB_KEY}&i=${imdbID}`);
+                    const omdb = await omdbResp.json();
+                    return { ...item, omdb: omdb.Response === 'True' ? omdb : null };
+                } catch {
+                    return { ...item, omdb: null };
+                }
+            }));
+            return enriched;
+        }
+
+        // --- Apply OMDb filters ---
+        function applyOMDbFilters(items) {
+            const imdbOn = document.getElementById('imdbToggle').classList.contains('on');
+            const imdbMin = imdbOn ? parseFloat(document.getElementById('imdbSlider').value) : null;
+
+            const rtOn = document.getElementById('rtToggle').classList.contains('on');
+            const rtMin = rtOn ? parseInt(document.getElementById('rtSlider').value, 10) : null;
+
+            const metaOn = document.getElementById('metaToggle').classList.contains('on');
+            const metaMin = metaOn ? parseInt(document.getElementById('metaSlider').value, 10) : null;
+
+            return items.filter(item => {
+                const o = item.omdb;
+                if (!o) return false; // No OMDb data = can't verify scores, skip
+
+                if (imdbMin !== null) {
+                    const v = parseFloat(o.imdbRating);
+                    if (isNaN(v) || v < imdbMin) return false;
+                }
+
+                if (rtMin !== null) {
+                    const rt = o.Ratings?.find(r => r.Source === 'Rotten Tomatoes');
+                    if (!rt) return false;
+                    const v = parseInt(rt.Value, 10);
+                    if (isNaN(v) || v < rtMin) return false;
+                }
+
+                if (metaMin !== null) {
+                    const v = parseInt(o.Metascore, 10);
+                    if (isNaN(v) || v < metaMin) return false;
+                }
+
+                return true;
+            });
         }
 
         // --- Card rendering ---
@@ -699,6 +891,22 @@
                 .map(g => `<span class="badge genre">${g}</span>`)
                 .join('');
 
+            // OMDb score badges (if enriched)
+            let omdbBadges = '';
+            if (item.omdb) {
+                const o = item.omdb;
+                if (o.imdbRating && o.imdbRating !== 'N/A')
+                    omdbBadges += `<span class="badge" style="background:#422006;color:#fcd34d;">IMDb ${o.imdbRating}</span>`;
+                const rt = o.Ratings?.find(r => r.Source === 'Rotten Tomatoes');
+                if (rt) {
+                    const v = parseInt(rt.Value, 10);
+                    const cls = v >= 60 ? 'background:#14532d;color:#86efac;' : 'background:#7f1d1d;color:#fca5a5;';
+                    omdbBadges += `<span class="badge" style="${cls}">${rt.Value} RT</span>`;
+                }
+                if (o.Metascore && o.Metascore !== 'N/A')
+                    omdbBadges += `<span class="badge" style="background:#1a2e05;color:#a3e635;">Meta ${o.Metascore}</span>`;
+            }
+
             card.innerHTML = `
                 <img src="${poster}" alt="${title}" loading="lazy">
                 <div class="card-info">
@@ -706,7 +914,7 @@
                     <div class="meta">${year || '?'} &middot; ${currentType === 'tv' ? 'TV' : 'Movie'}</div>
                     <div class="badges">
                         <span class="badge ${scoreCls}">${rating}</span>
-                        <span class="badge pop">#${Math.round(item.popularity)}</span>
+                        ${omdbBadges}
                         ${genres}
                     </div>
                 </div>
