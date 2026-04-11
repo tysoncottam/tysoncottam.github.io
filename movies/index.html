@@ -282,6 +282,40 @@
         .detail-row .label { color: #8b949e; }
         .detail-row .value { color: #e6edf3; text-align: right; max-width: 60%; }
 
+        .score-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .score-card {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 10px 8px;
+            text-align: center;
+        }
+
+        .score-card .sc-label {
+            font-size: 10px;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .score-card .sc-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .score-card .sc-value.imdb { color: #fcd34d; }
+        .score-card .sc-value.rt { color: #fa320a; }
+        .score-card .sc-value.rt.fresh { color: #66cc33; }
+        .score-card .sc-value.meta { color: #58a6ff; }
+        .score-card .sc-sub { font-size: 10px; color: #484f58; margin-top: 2px; }
+
         .load-more {
             display: block; width: 100%; padding: 12px; margin-top: 12px;
             border: 1px solid #30363d; border-radius: 8px; background: #161b22;
@@ -402,7 +436,9 @@
 
     <script>
         const API_KEY = '6613c444bf3c07af43035975aa9ccd17';
+        const OMDB_KEY = '9f12a726';
         const BASE = 'https://api.themoviedb.org/3';
+        const OMDB_BASE = 'https://www.omdbapi.com/';
         const IMG = 'https://image.tmdb.org/t/p';
 
         const applyBtn = document.getElementById('applyBtn');
@@ -678,23 +714,33 @@
             return card;
         }
 
+        // --- Fetch OMDb data by IMDb ID ---
+        async function fetchOMDb(imdbID) {
+            if (!imdbID) return null;
+            try {
+                const resp = await fetch(`${OMDB_BASE}?apikey=${OMDB_KEY}&i=${imdbID}`);
+                const data = await resp.json();
+                return data.Response === 'True' ? data : null;
+            } catch { return null; }
+        }
+
         // --- Detail modal ---
         async function showDetail(item) {
             const id = item.id;
             const isTV = currentType === 'tv';
             modal.classList.add('open');
-            modalContent.innerHTML = '<div class="loading-box"><div class="spinner"></div></div>';
+            modalContent.innerHTML = '<div class="loading-box"><div class="spinner"></div><div class="loading-text">Loading details...</div></div>';
 
             try {
-                const url = `${BASE}/${currentType}/${id}?api_key=${API_KEY}&append_to_response=credits,release_dates,content_ratings`;
-                const resp = await fetch(url);
-                const d = await resp.json();
+                // Fetch TMDb details first
+                const tmdbUrl = `${BASE}/${currentType}/${id}?api_key=${API_KEY}&append_to_response=credits,release_dates,content_ratings,external_ids`;
+                const tmdbResp = await fetch(tmdbUrl);
+                const d = await tmdbResp.json();
 
                 const title = d.title || d.name;
                 const year = (d.release_date || d.first_air_date || '').slice(0, 4);
                 const runtime = d.runtime ? `${d.runtime} min` : (d.episode_run_time?.[0] ? `${d.episode_run_time[0]} min/ep` : 'N/A');
                 const poster = d.poster_path ? `${IMG}/w500${d.poster_path}` : '';
-                const rating = d.vote_average ? d.vote_average.toFixed(1) : 'N/A';
 
                 // Get US certification
                 let cert = 'NR';
@@ -710,19 +756,44 @@
                 }
 
                 const genres = (d.genres || []).map(g => `<span class="badge genre">${g.name}</span>`).join('');
-
-                // Cast
                 const cast = (d.credits?.cast || []).slice(0, 5).map(c => c.name).join(', ') || 'N/A';
                 const director = (d.credits?.crew || []).find(c => c.job === 'Director')?.name || 'N/A';
                 const seasons = d.number_of_seasons ? `<div class="detail-row"><span class="label">Seasons</span><span class="value">${d.number_of_seasons}</span></div>` : '';
 
+                // Get IMDb ID for OMDb lookup
+                const imdbID = d.imdb_id || d.external_ids?.imdb_id || null;
+
+                // Fetch OMDb data in parallel (don't block the modal)
+                const omdbPromise = fetchOMDb(imdbID);
+
+                // Build score cards placeholder
+                const tmdbScore = d.vote_average ? d.vote_average.toFixed(1) : 'N/A';
+
+                // Render modal with TMDb data first
                 modalContent.innerHTML = `
                     <h2>${title}</h2>
                     <div class="detail-meta">${year} &middot; ${cert} &middot; ${runtime}</div>
                     ${poster ? `<img class="modal-poster" src="${poster}" alt="${title}">` : ''}
                     <div class="badges" style="margin-bottom:12px;">${genres}</div>
+                    <div class="score-cards" id="scoreCards">
+                        <div class="score-card">
+                            <div class="sc-label">IMDb</div>
+                            <div class="sc-value imdb" id="scImdb">...</div>
+                            <div class="sc-sub" id="scImdbSub"></div>
+                        </div>
+                        <div class="score-card">
+                            <div class="sc-label">Rotten Tomatoes</div>
+                            <div class="sc-value rt" id="scRT">...</div>
+                            <div class="sc-sub" id="scRTSub"></div>
+                        </div>
+                        <div class="score-card">
+                            <div class="sc-label">Metacritic</div>
+                            <div class="sc-value meta" id="scMeta">...</div>
+                            <div class="sc-sub" id="scMetaSub"></div>
+                        </div>
+                    </div>
                     <p class="plot">${d.overview || 'No overview available.'}</p>
-                    <div class="detail-row"><span class="label">Rating</span><span class="value">${rating} / 10 (${(d.vote_count || 0).toLocaleString()} votes)</span></div>
+                    <div class="detail-row"><span class="label">TMDb Rating</span><span class="value">${tmdbScore} / 10 (${(d.vote_count || 0).toLocaleString()} votes)</span></div>
                     <div class="detail-row"><span class="label">${isTV ? 'Creator' : 'Director'}</span><span class="value">${isTV ? (d.created_by?.map(c => c.name).join(', ') || 'N/A') : director}</span></div>
                     <div class="detail-row"><span class="label">Cast</span><span class="value">${cast}</span></div>
                     <div class="detail-row"><span class="label">Language</span><span class="value">${d.original_language?.toUpperCase() || 'N/A'}</span></div>
@@ -731,6 +802,52 @@
                     ${d.budget ? `<div class="detail-row"><span class="label">Budget</span><span class="value">$${d.budget.toLocaleString()}</span></div>` : ''}
                     ${d.revenue ? `<div class="detail-row"><span class="label">Revenue</span><span class="value">$${d.revenue.toLocaleString()}</span></div>` : ''}
                 `;
+
+                // Now fill in OMDb scores when ready
+                const omdb = await omdbPromise;
+                const scImdb = document.getElementById('scImdb');
+                const scRT = document.getElementById('scRT');
+                const scMeta = document.getElementById('scMeta');
+                const scImdbSub = document.getElementById('scImdbSub');
+                const scRTSub = document.getElementById('scRTSub');
+                const scMetaSub = document.getElementById('scMetaSub');
+
+                if (omdb) {
+                    // IMDb
+                    if (omdb.imdbRating && omdb.imdbRating !== 'N/A') {
+                        scImdb.textContent = omdb.imdbRating;
+                        scImdbSub.textContent = `${omdb.imdbVotes || ''} votes`;
+                    } else {
+                        scImdb.textContent = '—';
+                    }
+
+                    // Rotten Tomatoes
+                    const rtRating = omdb.Ratings?.find(r => r.Source === 'Rotten Tomatoes');
+                    if (rtRating) {
+                        const rtVal = parseInt(rtRating.Value, 10);
+                        scRT.textContent = rtRating.Value;
+                        if (rtVal >= 60) scRT.classList.add('fresh');
+                        scRTSub.textContent = rtVal >= 60 ? 'Fresh' : 'Rotten';
+                    } else {
+                        scRT.textContent = '—';
+                        scRTSub.textContent = 'No score';
+                    }
+
+                    // Metacritic
+                    if (omdb.Metascore && omdb.Metascore !== 'N/A') {
+                        scMeta.textContent = omdb.Metascore;
+                        const ms = parseInt(omdb.Metascore, 10);
+                        scMetaSub.textContent = ms >= 61 ? 'Favorable' : ms >= 40 ? 'Mixed' : 'Unfavorable';
+                    } else {
+                        scMeta.textContent = '—';
+                        scMetaSub.textContent = 'No score';
+                    }
+                } else {
+                    // OMDb unavailable
+                    if (scImdb) scImdb.textContent = '—';
+                    if (scRT) scRT.textContent = '—';
+                    if (scMeta) scMeta.textContent = '—';
+                }
             } catch (err) {
                 modalContent.innerHTML = '<p style="color:#f85149;">Failed to load details.</p>';
                 console.error(err);
