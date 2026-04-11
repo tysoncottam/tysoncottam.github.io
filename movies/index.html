@@ -22,25 +22,11 @@
             color: #58a6ff;
         }
 
-        /* Search bar */
-        .search-bar {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .search-bar input {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            background: #161b22;
-            color: #e6edf3;
-            font-size: 16px;
-        }
-
-        .search-bar button {
-            padding: 12px 20px;
+        /* Apply button */
+        .apply-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
             border: none;
             border-radius: 8px;
             background: #238636;
@@ -48,9 +34,11 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
+            margin-bottom: 12px;
         }
 
-        .search-bar button:active { background: #2ea043; }
+        .apply-btn:active { background: #2ea043; }
+        .apply-btn:disabled { background: #21262d; color: #484f58; }
 
         /* Type toggle */
         .type-toggle {
@@ -83,7 +71,7 @@
             border: 1px solid #30363d;
             border-radius: 8px;
             padding: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .filters summary {
@@ -93,9 +81,7 @@
             font-size: 14px;
         }
 
-        .filter-section {
-            margin-top: 14px;
-        }
+        .filter-section { margin-top: 14px; }
 
         .filter-section-label {
             font-size: 12px;
@@ -106,11 +92,7 @@
         }
 
         /* Toggle chips */
-        .chip-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
+        .chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
 
         .chip {
             padding: 6px 12px;
@@ -124,30 +106,37 @@
             -webkit-user-select: none;
         }
 
-        .chip.on {
-            background: #1f6feb;
-            color: #fff;
-            border-color: #1f6feb;
+        .chip.on { background: #1f6feb; color: #fff; border-color: #1f6feb; }
+        .chip.off { background: #21262d; color: #484f58; border-color: #30363d; text-decoration: line-through; }
+
+        /* Max rating segmented control */
+        .rating-seg {
+            display: flex;
+            gap: 0;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
-        .chip.off {
-            background: #21262d;
-            color: #484f58;
-            border-color: #30363d;
-            text-decoration: line-through;
+        .rating-seg button {
+            flex: 1;
+            padding: 10px 4px;
+            border: none;
+            border-right: 1px solid #30363d;
+            background: #161b22;
+            color: #8b949e;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
         }
+
+        .rating-seg button:last-child { border-right: none; }
+        .rating-seg button.active { background: #1f6feb; color: #fff; }
 
         /* Year range slider */
-        .year-range {
-            margin-top: 8px;
-        }
+        .year-range { margin-top: 8px; }
 
-        .year-inputs {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
+        .year-inputs { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 
         .year-inputs input[type="number"] {
             width: 72px;
@@ -163,357 +152,153 @@
 
         .year-inputs input[type="number"]::-webkit-inner-spin-button,
         .year-inputs input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+            -webkit-appearance: none; margin: 0;
         }
 
-        .year-inputs .year-dash {
-            color: #8b949e;
-            font-weight: 600;
-        }
+        .year-inputs .year-dash { color: #8b949e; font-weight: 600; }
 
-        .dual-range {
-            position: relative;
-            height: 32px;
-        }
+        .dual-range { position: relative; height: 32px; }
 
         .dual-range input[type="range"] {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 32px;
-            pointer-events: none;
-            -webkit-appearance: none;
-            appearance: none;
-            background: transparent;
+            position: absolute; left: 0; top: 0; width: 100%; height: 32px;
+            pointer-events: none; -webkit-appearance: none; appearance: none; background: transparent;
         }
 
         .dual-range input[type="range"]::-webkit-slider-runnable-track {
-            height: 4px;
-            border-radius: 2px;
-            background: transparent;
+            height: 4px; border-radius: 2px; background: transparent;
         }
 
         .dual-range input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: #58a6ff;
-            border: 2px solid #0d1117;
-            cursor: pointer;
-            pointer-events: all;
-            margin-top: -9px;
+            -webkit-appearance: none; appearance: none;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: #58a6ff; border: 2px solid #0d1117;
+            cursor: pointer; pointer-events: all; margin-top: -9px;
         }
 
         .dual-range input[type="range"]::-moz-range-thumb {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: #58a6ff;
-            border: 2px solid #0d1117;
-            cursor: pointer;
-            pointer-events: all;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: #58a6ff; border: 2px solid #0d1117;
+            cursor: pointer; pointer-events: all;
         }
 
         .dual-range .track-bg {
-            position: absolute;
-            top: 14px;
-            left: 0;
-            right: 0;
-            height: 4px;
-            border-radius: 2px;
-            background: #30363d;
-            pointer-events: none;
+            position: absolute; top: 14px; left: 0; right: 0;
+            height: 4px; border-radius: 2px; background: #30363d; pointer-events: none;
         }
 
         .dual-range .track-fill {
-            position: absolute;
-            top: 14px;
-            height: 4px;
-            border-radius: 2px;
-            background: #58a6ff;
-            pointer-events: none;
+            position: absolute; top: 14px; height: 4px;
+            border-radius: 2px; background: #58a6ff; pointer-events: none;
         }
 
-        /* Score sliders */
-        .score-filters {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 8px;
-        }
+        /* Score slider */
+        .score-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
 
-        .score-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .score-row .platform-label {
-            font-size: 13px;
-            font-weight: 600;
-            min-width: 70px;
-            flex-shrink: 0;
-        }
-
-        .score-row .platform-label.imdb { color: #fcd34d; }
-        .score-row .platform-label.rt { color: #fa320a; }
-        .score-row .platform-label.meta { color: #66cc33; }
-
-        .score-row input[type="range"] {
-            flex: 1;
-            accent-color: #58a6ff;
-            height: 20px;
-        }
+        .score-row input[type="range"] { flex: 1; accent-color: #58a6ff; height: 20px; }
 
         .score-row .score-value {
-            font-size: 13px;
-            font-weight: 600;
-            min-width: 38px;
-            text-align: right;
-            color: #e6edf3;
+            font-size: 14px; font-weight: 600; min-width: 32px; text-align: right; color: #e6edf3;
         }
-
-        .score-row .score-off {
-            color: #484f58;
-        }
-
-        .score-toggle {
-            width: 36px;
-            height: 22px;
-            border-radius: 11px;
-            border: none;
-            cursor: pointer;
-            position: relative;
-            flex-shrink: 0;
-            transition: background 0.15s;
-        }
-
-        .score-toggle.on { background: #238636; }
-        .score-toggle.off { background: #30363d; }
-
-        .score-toggle::after {
-            content: '';
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #fff;
-            top: 3px;
-            transition: left 0.15s;
-        }
-
-        .score-toggle.on::after { left: 17px; }
-        .score-toggle.off::after { left: 3px; }
 
         /* Sort bar */
         .sort-bar {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 12px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 4px;
+            display: flex; gap: 6px; margin-bottom: 12px;
+            overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px;
         }
 
         .sort-btn {
-            padding: 8px 12px;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            background: #161b22;
-            color: #8b949e;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            flex-shrink: 0;
+            padding: 8px 12px; border: 1px solid #30363d; border-radius: 8px;
+            background: #161b22; color: #8b949e; font-size: 12px;
+            font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0;
         }
 
-        .sort-btn.active {
-            background: #1f6feb;
-            color: #fff;
-            border-color: #1f6feb;
-        }
-
-        .sort-arrow {
-            margin-left: 3px;
-            font-size: 10px;
-        }
+        .sort-btn.active { background: #1f6feb; color: #fff; border-color: #1f6feb; }
+        .sort-arrow { margin-left: 3px; font-size: 10px; }
 
         /* Results */
-        .status {
-            text-align: center;
-            color: #8b949e;
-            padding: 20px;
-            font-size: 14px;
-        }
+        .status { text-align: center; color: #8b949e; padding: 20px; font-size: 14px; }
 
-        .results {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+        .results { display: flex; flex-direction: column; gap: 12px; }
 
         .card {
-            display: flex;
-            gap: 12px;
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 12px;
-            cursor: pointer;
+            display: flex; gap: 12px; background: #161b22;
+            border: 1px solid #30363d; border-radius: 8px; padding: 12px; cursor: pointer;
         }
 
         .card img {
-            width: 80px;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 4px;
-            flex-shrink: 0;
-            background: #30363d;
+            width: 80px; height: 120px; object-fit: cover;
+            border-radius: 4px; flex-shrink: 0; background: #30363d;
         }
 
         .card-info { flex: 1; min-width: 0; }
-
-        .card-info h3 {
-            font-size: 15px;
-            margin-bottom: 4px;
-            color: #e6edf3;
-        }
-
-        .card-info .meta {
-            font-size: 12px;
-            color: #8b949e;
-            margin-bottom: 6px;
-        }
-
+        .card-info h3 { font-size: 15px; margin-bottom: 4px; color: #e6edf3; }
+        .card-info .meta { font-size: 12px; color: #8b949e; margin-bottom: 6px; }
         .badges { display: flex; flex-wrap: wrap; gap: 4px; }
 
         .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
+            display: inline-block; padding: 2px 8px;
+            border-radius: 12px; font-size: 11px; font-weight: 600;
         }
 
-        .badge.rating {
-            background: #1f2937;
-            color: #9ca3af;
-            border: 1px solid #374151;
-        }
-
-        .badge.rt { background: #7f1d1d; color: #fca5a5; }
-        .badge.rt.fresh { background: #14532d; color: #86efac; }
+        .badge.rating { background: #1f2937; color: #9ca3af; border: 1px solid #374151; }
+        .badge.score { background: #422006; color: #fcd34d; }
+        .badge.score.high { background: #14532d; color: #86efac; }
         .badge.genre { background: #1e1b4b; color: #a5b4fc; }
-        .badge.imdb { background: #422006; color: #fcd34d; }
-        .badge.meta { background: #1a2e05; color: #a3e635; }
+        .badge.pop { background: #4a1d96; color: #c4b5fd; }
 
         /* Detail modal */
         .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 100;
-            overflow-y: auto;
-            padding: 16px;
+            display: none; position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.8); z-index: 100;
+            overflow-y: auto; padding: 16px;
         }
 
         .modal-overlay.open { display: block; }
 
         .modal {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 16px;
+            background: #161b22; border: 1px solid #30363d;
+            border-radius: 12px; max-width: 500px; margin: 0 auto; padding: 16px;
         }
 
         .modal-close {
-            float: right;
-            background: none;
-            border: none;
-            color: #8b949e;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 0 4px;
+            float: right; background: none; border: none;
+            color: #8b949e; font-size: 24px; cursor: pointer; padding: 0 4px;
         }
 
         .modal-poster {
-            width: 100%;
-            max-width: 200px;
-            display: block;
-            margin: 12px auto;
-            border-radius: 8px;
+            width: 100%; max-width: 200px;
+            display: block; margin: 12px auto; border-radius: 8px;
         }
 
         .modal h2 { font-size: 1.2rem; margin-bottom: 4px; }
-
-        .modal .detail-meta {
-            color: #8b949e;
-            font-size: 13px;
-            margin-bottom: 12px;
-        }
-
-        .modal .plot {
-            font-size: 14px;
-            line-height: 1.5;
-            color: #c9d1d9;
-            margin: 12px 0;
-        }
+        .modal .detail-meta { color: #8b949e; font-size: 13px; margin-bottom: 12px; }
+        .modal .plot { font-size: 14px; line-height: 1.5; color: #c9d1d9; margin: 12px 0; }
 
         .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid #21262d;
-            font-size: 13px;
+            display: flex; justify-content: space-between;
+            padding: 6px 0; border-bottom: 1px solid #21262d; font-size: 13px;
         }
 
         .detail-row .label { color: #8b949e; }
         .detail-row .value { color: #e6edf3; text-align: right; max-width: 60%; }
 
         .load-more {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            margin-top: 12px;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            background: #161b22;
-            color: #58a6ff;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
+            display: block; width: 100%; padding: 12px; margin-top: 12px;
+            border: 1px solid #30363d; border-radius: 8px; background: #161b22;
+            color: #58a6ff; font-size: 14px; font-weight: 600; cursor: pointer;
         }
 
         .load-more:active { background: #1c2128; }
 
-        .loading-box {
-            text-align: center;
-            padding: 32px 16px;
-        }
+        .loading-box { text-align: center; padding: 32px 16px; }
 
         .spinner {
-            display: inline-block;
-            width: 36px;
-            height: 36px;
-            border: 3px solid #30363d;
-            border-top-color: #58a6ff;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-            margin: 0 auto 12px;
+            display: inline-block; width: 36px; height: 36px;
+            border: 3px solid #30363d; border-top-color: #58a6ff;
+            border-radius: 50%; animation: spin 0.6s linear infinite; margin: 0 auto 12px;
         }
 
-        .loading-text {
-            color: #8b949e;
-            font-size: 14px;
-        }
+        .loading-text { color: #8b949e; font-size: 14px; }
 
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
@@ -521,36 +306,24 @@
 <body>
     <h1>Movie & TV Search</h1>
 
-    <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Optional: narrow by keyword" autocomplete="off">
-        <button id="searchBtn">Find Movies</button>
-    </div>
-
     <div class="type-toggle">
-        <button class="active" data-type="">All</button>
-        <button data-type="movie">Movies</button>
-        <button data-type="series">TV Shows</button>
+        <button class="active" data-type="movie">Movies</button>
+        <button data-type="tv">TV Shows</button>
     </div>
 
     <details class="filters" open>
         <summary>Filters</summary>
 
-        <!-- Content Rating toggles -->
+        <!-- Max Content Rating -->
         <div class="filter-section">
-            <div class="filter-section-label">Content Rating (tap to exclude)</div>
-            <div class="chip-group" id="ratingChips">
-                <span class="chip on" data-value="G">G</span>
-                <span class="chip on" data-value="PG">PG</span>
-                <span class="chip on" data-value="PG-13">PG-13</span>
-                <span class="chip on" data-value="R">R</span>
-                <span class="chip on" data-value="NC-17">NC-17</span>
-                <span class="chip on" data-value="TV-Y">TV-Y</span>
-                <span class="chip on" data-value="TV-G">TV-G</span>
-                <span class="chip on" data-value="TV-PG">TV-PG</span>
-                <span class="chip on" data-value="TV-14">TV-14</span>
-                <span class="chip on" data-value="TV-MA">TV-MA</span>
-                <span class="chip on" data-value="Not Rated">NR</span>
-                <span class="chip on" data-value="Unrated">Unrated</span>
+            <div class="filter-section-label">Max Content Rating</div>
+            <div class="rating-seg" id="ratingSeg">
+                <button data-cert="G">G</button>
+                <button data-cert="PG">PG</button>
+                <button data-cert="PG-13">PG-13</button>
+                <button data-cert="R">R</button>
+                <button data-cert="NC-17">NC-17</button>
+                <button data-cert="" class="active">Any</button>
             </div>
         </div>
 
@@ -558,27 +331,24 @@
         <div class="filter-section">
             <div class="filter-section-label">Genre (tap to exclude)</div>
             <div class="chip-group" id="genreChips">
-                <span class="chip on" data-value="Action">Action</span>
-                <span class="chip on" data-value="Adventure">Adventure</span>
-                <span class="chip on" data-value="Animation">Animation</span>
-                <span class="chip on" data-value="Biography">Biography</span>
-                <span class="chip on" data-value="Comedy">Comedy</span>
-                <span class="chip on" data-value="Crime">Crime</span>
-                <span class="chip on" data-value="Documentary">Documentary</span>
-                <span class="chip on" data-value="Drama">Drama</span>
-                <span class="chip on" data-value="Family">Family</span>
-                <span class="chip on" data-value="Fantasy">Fantasy</span>
-                <span class="chip on" data-value="History">History</span>
-                <span class="chip on" data-value="Horror">Horror</span>
-                <span class="chip on" data-value="Music">Music</span>
-                <span class="chip on" data-value="Musical">Musical</span>
-                <span class="chip on" data-value="Mystery">Mystery</span>
-                <span class="chip on" data-value="Romance">Romance</span>
-                <span class="chip on" data-value="Sci-Fi">Sci-Fi</span>
-                <span class="chip on" data-value="Sport">Sport</span>
-                <span class="chip on" data-value="Thriller">Thriller</span>
-                <span class="chip on" data-value="War">War</span>
-                <span class="chip on" data-value="Western">Western</span>
+                <span class="chip on" data-movie="28" data-tv="10759">Action</span>
+                <span class="chip on" data-movie="12" data-tv="10759">Adventure</span>
+                <span class="chip on" data-movie="16" data-tv="16">Animation</span>
+                <span class="chip on" data-movie="35" data-tv="35">Comedy</span>
+                <span class="chip on" data-movie="80" data-tv="80">Crime</span>
+                <span class="chip on" data-movie="99" data-tv="99">Documentary</span>
+                <span class="chip on" data-movie="18" data-tv="18">Drama</span>
+                <span class="chip on" data-movie="10751" data-tv="10751">Family</span>
+                <span class="chip on" data-movie="14" data-tv="10765">Fantasy</span>
+                <span class="chip on" data-movie="36" data-tv="">History</span>
+                <span class="chip on" data-movie="27" data-tv="">Horror</span>
+                <span class="chip on" data-movie="10402" data-tv="">Music</span>
+                <span class="chip on" data-movie="9648" data-tv="9648">Mystery</span>
+                <span class="chip on" data-movie="10749" data-tv="">Romance</span>
+                <span class="chip on" data-movie="878" data-tv="10765">Sci-Fi</span>
+                <span class="chip on" data-movie="53" data-tv="">Thriller</span>
+                <span class="chip on" data-movie="10752" data-tv="10768">War</span>
+                <span class="chip on" data-movie="37" data-tv="37">Western</span>
             </div>
         </div>
 
@@ -600,43 +370,28 @@
             </div>
         </div>
 
-        <!-- Platform minimum scores -->
+        <!-- Min Rating -->
         <div class="filter-section">
-            <div class="filter-section-label">Minimum Scores (toggle on to filter)</div>
-            <div class="score-filters">
-                <div class="score-row">
-                    <button class="score-toggle off" id="imdbToggle"></button>
-                    <span class="platform-label imdb">IMDb</span>
-                    <input type="range" id="imdbSlider" min="0" max="10" step="0.5" value="5" disabled>
-                    <span class="score-value score-off" id="imdbValue">OFF</span>
-                </div>
-                <div class="score-row">
-                    <button class="score-toggle off" id="rtToggle"></button>
-                    <span class="platform-label rt">RT</span>
-                    <input type="range" id="rtSlider" min="0" max="100" step="5" value="60" disabled>
-                    <span class="score-value score-off" id="rtValue">OFF</span>
-                </div>
-                <div class="score-row">
-                    <button class="score-toggle off" id="metaToggle"></button>
-                    <span class="platform-label meta">Metacritic</span>
-                    <input type="range" id="metaSlider" min="0" max="100" step="5" value="50" disabled>
-                    <span class="score-value score-off" id="metaValue">OFF</span>
-                </div>
+            <div class="filter-section-label">Minimum TMDb Rating</div>
+            <div class="score-row">
+                <input type="range" id="ratingSlider" min="0" max="10" step="0.5" value="0">
+                <span class="score-value" id="ratingValue">Any</span>
             </div>
         </div>
     </details>
 
+    <button class="apply-btn" id="applyBtn">Find Movies</button>
+
     <div class="sort-bar" id="sortBar">
-        <button class="sort-btn" data-sort="title">Title <span class="sort-arrow"></span></button>
-        <button class="sort-btn" data-sort="year">Year <span class="sort-arrow"></span></button>
-        <button class="sort-btn" data-sort="imdb">IMDb <span class="sort-arrow"></span></button>
-        <button class="sort-btn" data-sort="rt">RT <span class="sort-arrow"></span></button>
-        <button class="sort-btn" data-sort="meta">Metacritic <span class="sort-arrow"></span></button>
+        <button class="sort-btn active" data-sort="popularity.desc">Popular <span class="sort-arrow">&darr;</span></button>
+        <button class="sort-btn" data-sort="vote_average.desc">Rating <span class="sort-arrow"></span></button>
+        <button class="sort-btn" data-sort="primary_release_date.desc">Year <span class="sort-arrow"></span></button>
+        <button class="sort-btn" data-sort="original_title.asc">Title <span class="sort-arrow"></span></button>
     </div>
 
     <div id="status" class="status">Set your filters and tap "Find Movies" to discover titles.</div>
     <div id="results" class="results"></div>
-    <button id="loadMore" class="load-more" style="display:none;">Discover More</button>
+    <button id="loadMore" class="load-more" style="display:none;">Load More</button>
 
     <div id="modal" class="modal-overlay">
         <div class="modal">
@@ -646,41 +401,46 @@
     </div>
 
     <script>
-        const API_KEY = '9f12a726';
-        const BASE = 'https://www.omdbapi.com/';
+        const API_KEY = '6613c444bf3c07af43035975aa9ccd17';
+        const BASE = 'https://api.themoviedb.org/3';
+        const IMG = 'https://image.tmdb.org/t/p';
 
-        // Common search words used for discovery when no keyword is entered
-        const DISCOVER_WORDS = [
-            'the','man','love','night','dark','last','fire','star','king','war',
-            'dead','blood','black','world','death','game','life','day','city','time',
-            'house','girl','blue','red','american','secret','lost','bad','big','one',
-            'home','money','kill','good','story','new','wild','high','hard','john',
-            'fight','road','dream','code','island','summer','magic','ghost','iron','wolf',
-            'back','boy','heart','run','sky','moon','deep','true','gold','age',
-            'fall','cold','broken','family','mission','captain','fast','long','great','power',
-            'return','super','little','alien','space','dragon','prince','queen','school','bridge',
-            'white','green','river','dog','cat','angel','devil','light','shadow','storm',
-            'street','tower','brave','final','rise','south','west','north','east','point'
-        ];
-
-        const searchInput = document.getElementById('searchInput');
-        const searchBtn = document.getElementById('searchBtn');
+        const applyBtn = document.getElementById('applyBtn');
         const resultsDiv = document.getElementById('results');
         const statusDiv = document.getElementById('status');
         const loadMoreBtn = document.getElementById('loadMore');
         const modal = document.getElementById('modal');
         const modalContent = document.getElementById('modalContent');
         const modalClose = document.getElementById('modalClose');
+        const ratingSlider = document.getElementById('ratingSlider');
+        const ratingValue = document.getElementById('ratingValue');
 
-        let currentType = '';
-        let seenIDs = new Set();
-        let discoverIndex = 0;
+        let currentType = 'movie';
+        let currentSort = 'popularity.desc';
+        let currentPage = 1;
+        let totalPages = 0;
         let isLoading = false;
-        let displayedItems = [];
-        let currentSort = null;  // { key, asc }
 
+        // Genre ID map (loaded from API on init)
+        let genreMap = {};
 
-        // --- Chip toggles (ratings & genres) ---
+        // --- Fetch genre names ---
+        async function loadGenres() {
+            try {
+                const [mRes, tRes] = await Promise.all([
+                    fetch(`${BASE}/genre/movie/list?api_key=${API_KEY}`),
+                    fetch(`${BASE}/genre/tv/list?api_key=${API_KEY}`)
+                ]);
+                const mData = await mRes.json();
+                const tData = await tRes.json();
+                for (const g of [...mData.genres, ...tData.genres]) {
+                    genreMap[g.id] = g.name;
+                }
+            } catch (e) { console.error('Failed to load genres', e); }
+        }
+        loadGenres();
+
+        // --- Chip toggles ---
         document.querySelectorAll('.chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 chip.classList.toggle('on');
@@ -688,34 +448,24 @@
             });
         });
 
-        // --- Score toggle + slider wiring ---
-        function wireScore(toggleId, sliderId, valueId) {
-            const toggle = document.getElementById(toggleId);
-            const slider = document.getElementById(sliderId);
-            const valueEl = document.getElementById(valueId);
+        // --- Content rating segmented control ---
+        const certOrder = ['G', 'PG', 'PG-13', 'R', 'NC-17'];
+        const tvCertMap = { 'G': 'TV-G', 'PG': 'TV-PG', 'PG-13': 'TV-14', 'R': 'TV-MA', 'NC-17': 'TV-MA' };
+        let maxCert = '';
 
-            toggle.addEventListener('click', () => {
-                const isOn = toggle.classList.contains('on');
-                toggle.classList.toggle('on', !isOn);
-                toggle.classList.toggle('off', isOn);
-                slider.disabled = isOn;
-                if (isOn) {
-                    valueEl.textContent = 'OFF';
-                    valueEl.classList.add('score-off');
-                } else {
-                    valueEl.textContent = slider.value + (sliderId === 'imdbSlider' ? '' : '%');
-                    valueEl.classList.remove('score-off');
-                }
+        document.querySelectorAll('#ratingSeg button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelector('#ratingSeg .active').classList.remove('active');
+                btn.classList.add('active');
+                maxCert = btn.dataset.cert;
             });
+        });
 
-            slider.addEventListener('input', () => {
-                valueEl.textContent = slider.value + (sliderId === 'imdbSlider' ? '' : '%');
-            });
-        }
-
-        wireScore('imdbToggle', 'imdbSlider', 'imdbValue');
-        wireScore('rtToggle', 'rtSlider', 'rtValue');
-        wireScore('metaToggle', 'metaSlider', 'metaValue');
+        // --- Rating slider ---
+        ratingSlider.addEventListener('input', () => {
+            const v = parseFloat(ratingSlider.value);
+            ratingValue.textContent = v === 0 ? 'Any' : v.toFixed(1) + '+';
+        });
 
         // --- Year range dual slider ---
         const yearMinSlider = document.getElementById('yearMinSlider');
@@ -729,42 +479,32 @@
             const max = parseInt(yearMinSlider.max);
             const lo = parseInt(yearMinSlider.value);
             const hi = parseInt(yearMaxSlider.value);
-            const leftPct = ((lo - min) / (max - min)) * 100;
-            const rightPct = ((hi - min) / (max - min)) * 100;
-            yearTrackFill.style.left = leftPct + '%';
-            yearTrackFill.style.width = (rightPct - leftPct) + '%';
+            yearTrackFill.style.left = ((lo - min) / (max - min)) * 100 + '%';
+            yearTrackFill.style.width = ((hi - lo) / (max - min)) * 100 + '%';
         }
 
         yearMinSlider.addEventListener('input', () => {
-            if (parseInt(yearMinSlider.value) > parseInt(yearMaxSlider.value)) {
+            if (parseInt(yearMinSlider.value) > parseInt(yearMaxSlider.value))
                 yearMinSlider.value = yearMaxSlider.value;
-            }
             yearMinInput.value = yearMinSlider.value;
             updateYearTrack();
         });
 
         yearMaxSlider.addEventListener('input', () => {
-            if (parseInt(yearMaxSlider.value) < parseInt(yearMinSlider.value)) {
+            if (parseInt(yearMaxSlider.value) < parseInt(yearMinSlider.value))
                 yearMaxSlider.value = yearMinSlider.value;
-            }
             yearMaxInput.value = yearMaxSlider.value;
             updateYearTrack();
         });
 
         yearMinInput.addEventListener('change', () => {
-            let v = parseInt(yearMinInput.value) || 1900;
-            v = Math.max(1900, Math.min(v, parseInt(yearMaxSlider.value)));
-            yearMinInput.value = v;
-            yearMinSlider.value = v;
-            updateYearTrack();
+            let v = Math.max(1900, Math.min(parseInt(yearMinInput.value) || 1900, parseInt(yearMaxSlider.value)));
+            yearMinInput.value = v; yearMinSlider.value = v; updateYearTrack();
         });
 
         yearMaxInput.addEventListener('change', () => {
-            let v = parseInt(yearMaxInput.value) || 2026;
-            v = Math.min(2026, Math.max(v, parseInt(yearMinSlider.value)));
-            yearMaxInput.value = v;
-            yearMaxSlider.value = v;
-            updateYearTrack();
+            let v = Math.min(2026, Math.max(parseInt(yearMaxInput.value) || 2026, parseInt(yearMinSlider.value)));
+            yearMaxInput.value = v; yearMaxSlider.value = v; updateYearTrack();
         });
 
         updateYearTrack();
@@ -775,252 +515,132 @@
                 document.querySelector('.type-toggle .active').classList.remove('active');
                 btn.classList.add('active');
                 currentType = btn.dataset.type;
+                applyBtn.textContent = currentType === 'tv' ? 'Find TV Shows' : 'Find Movies';
+            });
+        });
+
+        // --- Sort bar ---
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const sort = btn.dataset.sort;
+                // Toggle asc/desc if clicking the same button
+                if (currentSort === sort) {
+                    const [field, dir] = sort.split('.');
+                    const newDir = dir === 'desc' ? 'asc' : 'desc';
+                    btn.dataset.sort = `${field}.${newDir}`;
+                    currentSort = btn.dataset.sort;
+                    btn.querySelector('.sort-arrow').textContent = newDir === 'asc' ? '\u25B2' : '\u25BC';
+                } else {
+                    currentSort = sort;
+                    document.querySelectorAll('.sort-btn').forEach(b => {
+                        b.classList.remove('active');
+                        b.querySelector('.sort-arrow').textContent = '';
+                    });
+                    btn.classList.add('active');
+                    const dir = sort.split('.')[1];
+                    btn.querySelector('.sort-arrow').textContent = dir === 'asc' ? '\u25B2' : '\u25BC';
+                }
+                // Re-fetch with new sort
+                doDiscover(true);
             });
         });
 
         // --- Loading UI ---
-        function showLoading(msg) {
-            statusDiv.innerHTML = `<div class="loading-box"><div class="spinner"></div><div class="loading-text">${msg}</div></div>`;
+        function showLoading() {
+            statusDiv.innerHTML = '<div class="loading-box"><div class="spinner"></div><div class="loading-text">Loading...</div></div>';
         }
 
-        function updateLoadingText(msg) {
-            const el = statusDiv.querySelector('.loading-text');
-            if (el) el.textContent = msg;
-        }
+        // --- Build discover URL ---
+        function buildURL(page) {
+            const isTV = currentType === 'tv';
+            let url = `${BASE}/discover/${currentType}?api_key=${API_KEY}&language=en-US&page=${page}`;
 
-        // --- Shuffle helper ---
-        function shuffle(arr) {
-            const a = [...arr];
-            for (let i = a.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
+            // Sort
+            let sort = currentSort;
+            if (isTV) sort = sort.replace('primary_release_date', 'first_air_date');
+            url += `&sort_by=${sort}`;
+
+            // Genres — collect ON chips
+            const onChips = document.querySelectorAll('#genreChips .chip.on');
+            const allChips = document.querySelectorAll('#genreChips .chip');
+            if (onChips.length < allChips.length) {
+                const ids = new Set();
+                onChips.forEach(c => {
+                    const id = isTV ? c.dataset.tv : c.dataset.movie;
+                    if (id) ids.add(id);
+                });
+                if (ids.size > 0) url += `&with_genres=${[...ids].join('|')}`;
             }
-            return a;
+
+            // Year range
+            const yMin = yearMinSlider.value;
+            const yMax = yearMaxSlider.value;
+            if (isTV) {
+                url += `&first_air_date.gte=${yMin}-01-01&first_air_date.lte=${yMax}-12-31`;
+            } else {
+                url += `&primary_release_date.gte=${yMin}-01-01&primary_release_date.lte=${yMax}-12-31`;
+            }
+
+            // Rating
+            const minRating = parseFloat(ratingSlider.value);
+            if (minRating > 0) {
+                url += `&vote_average.gte=${minRating}&vote_count.gte=50`;
+            }
+
+            // Certification
+            if (maxCert) {
+                url += `&certification_country=US`;
+                if (isTV) {
+                    url += `&certification.lte=${tvCertMap[maxCert] || maxCert}`;
+                } else {
+                    url += `&certification.lte=${maxCert}`;
+                }
+            }
+
+            return url;
         }
 
-        // --- Pick random years from range ---
-        function pickYears(minY, maxY, count) {
-            const range = maxY - minY + 1;
-            if (range <= count) {
-                const years = [];
-                for (let y = minY; y <= maxY; y++) years.push(y);
-                return shuffle(years);
-            }
-            const years = new Set();
-            while (years.size < count) {
-                years.add(minY + Math.floor(Math.random() * range));
-            }
-            return [...years];
-        }
-
-        // --- Main search / discover ---
-        searchBtn.addEventListener('click', () => doDiscover(true));
-        searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doDiscover(true); });
+        // --- Main discover ---
+        applyBtn.addEventListener('click', () => doDiscover(true));
 
         async function doDiscover(fresh) {
             if (isLoading) return;
             isLoading = true;
+            applyBtn.disabled = true;
 
             if (fresh) {
+                currentPage = 1;
                 resultsDiv.innerHTML = '';
-                seenIDs = new Set();
-                discoverIndex = 0;
             }
 
             loadMoreBtn.style.display = 'none';
-            showLoading('Searching...');
+            showLoading();
 
-            const keyword = searchInput.value.trim();
-            const yearMin = parseInt(yearMinSlider.value);
-            const yearMax = parseInt(yearMaxSlider.value);
-
-            let allDetails = [];
-
-            if (keyword) {
-                // User provided a keyword: search with it across a few years in range
-                const years = pickYears(yearMin, yearMax, 5);
-                const searches = years.map(y => searchOMDb(keyword, y));
-                // Also search without year restriction for broader results
-                searches.push(searchOMDb(keyword, null));
-                const batches = await Promise.all(searches);
-                const ids = new Set();
-                const uniqueItems = [];
-                for (const batch of batches) {
-                    for (const item of batch) {
-                        if (!ids.has(item.imdbID) && !seenIDs.has(item.imdbID)) {
-                            ids.add(item.imdbID);
-                            uniqueItems.push(item);
-                        }
-                    }
-                }
-                updateLoadingText(`Checking ${uniqueItems.length} titles...`);
-                allDetails = await fetchAllDetails(uniqueItems.slice(0, 30));
-            } else {
-                // No keyword: use discovery words, mix of year-locked and open searches
-                const words = shuffle(DISCOVER_WORDS).slice(discoverIndex, discoverIndex + 10);
-                discoverIndex += 10;
-                if (discoverIndex >= DISCOVER_WORDS.length) discoverIndex = 0;
-
-                const years = pickYears(yearMin, yearMax, 5);
-                const searches = [];
-                for (let i = 0; i < words.length; i++) {
-                    if (i < 5) {
-                        // Half with a year from the range for targeted results
-                        const y = years[i % years.length];
-                        searches.push(searchOMDb(words[i], y));
-                    } else {
-                        // Half without year lock for broader discovery
-                        searches.push(searchOMDb(words[i], null));
-                    }
-                }
-                const batches = await Promise.all(searches);
-                const ids = new Set();
-                const uniqueItems = [];
-                for (const batch of batches) {
-                    for (const item of batch) {
-                        if (!ids.has(item.imdbID) && !seenIDs.has(item.imdbID)) {
-                            ids.add(item.imdbID);
-                            uniqueItems.push(item);
-                        }
-                    }
-                }
-                updateLoadingText(`Checking ${uniqueItems.length} titles...`);
-                allDetails = await fetchAllDetails(uniqueItems.slice(0, 50));
-            }
-
-            // Mark all as seen
-            allDetails.forEach(d => seenIDs.add(d.imdbID));
-
-            const filtered = applyFilters(allDetails);
-
-            if (fresh) displayedItems = [];
-            displayedItems.push(...filtered);
-
-            if (displayedItems.length === 0) {
-                statusDiv.textContent = 'No matches for your current filters. Try adjusting them or tap "Discover More".';
-            } else {
-                statusDiv.textContent = `${displayedItems.length} title${displayedItems.length !== 1 ? 's' : ''} match your filters`;
-            }
-
-            // Re-sort if a sort is active, otherwise just render new items
-            if (currentSort) {
-                renderSorted();
-            } else {
-                filtered.forEach(item => resultsDiv.appendChild(createCard(item)));
-            }
-
-            loadMoreBtn.style.display = 'block';
-            isLoading = false;
-        }
-
-        async function searchOMDb(term, year) {
-            let url = `${BASE}?apikey=${API_KEY}&s=${encodeURIComponent(term)}`;
-            if (year) url += `&y=${year}`;
-            if (currentType) url += `&type=${currentType}`;
             try {
+                const url = buildURL(currentPage);
                 const resp = await fetch(url);
                 const data = await resp.json();
-                return data.Response === 'True' ? data.Search : [];
-            } catch { return []; }
-        }
 
-        async function fetchAllDetails(items) {
-            // Fetch in batches of 10 to avoid hammering the API
-            const results = [];
-            for (let i = 0; i < items.length; i += 10) {
-                const batch = items.slice(i, i + 10);
-                const details = await Promise.all(
-                    batch.map(item => fetchDetails(item.imdbID))
-                );
-                results.push(...details.filter(d => d && d.Response !== 'False'));
+                totalPages = data.total_pages || 0;
+                const totalResults = data.total_results || 0;
+
+                if (!data.results || data.results.length === 0) {
+                    statusDiv.textContent = fresh
+                        ? 'No results match your filters. Try broadening them.'
+                        : 'No more results.';
+                } else {
+                    statusDiv.textContent = `${totalResults.toLocaleString()} titles found (page ${currentPage} of ${totalPages})`;
+                    data.results.forEach(item => resultsDiv.appendChild(createCard(item)));
+                }
+
+                loadMoreBtn.style.display = currentPage < totalPages ? 'block' : 'none';
+            } catch (err) {
+                statusDiv.textContent = 'Error fetching results. Check your connection.';
+                console.error(err);
             }
-            return results;
-        }
 
-        async function fetchDetails(imdbID) {
-            try {
-                const resp = await fetch(`${BASE}?apikey=${API_KEY}&i=${imdbID}`);
-                return resp.json();
-            } catch { return null; }
-        }
-
-        // --- Helpers to read scores ---
-        function getRT(item) {
-            if (!item.Ratings) return null;
-            const rt = item.Ratings.find(r => r.Source === 'Rotten Tomatoes');
-            return rt ? parseInt(rt.Value, 10) : null;
-        }
-
-        function getMeta(item) {
-            if (!item.Metascore || item.Metascore === 'N/A') return null;
-            return parseInt(item.Metascore, 10);
-        }
-
-        function getIMDb(item) {
-            if (!item.imdbRating || item.imdbRating === 'N/A') return null;
-            return parseFloat(item.imdbRating);
-        }
-
-        // --- Filtering ---
-        function applyFilters(items) {
-            const allowedRatings = new Set();
-            document.querySelectorAll('#ratingChips .chip.on').forEach(c => allowedRatings.add(c.dataset.value));
-
-            const allowedGenres = new Set();
-            document.querySelectorAll('#genreChips .chip.on').forEach(c => allowedGenres.add(c.dataset.value));
-
-            const imdbOn = document.getElementById('imdbToggle').classList.contains('on');
-            const imdbMin = imdbOn ? parseFloat(document.getElementById('imdbSlider').value) : null;
-
-            const rtOn = document.getElementById('rtToggle').classList.contains('on');
-            const rtMin = rtOn ? parseInt(document.getElementById('rtSlider').value, 10) : null;
-
-            const metaOn = document.getElementById('metaToggle').classList.contains('on');
-            const metaMin = metaOn ? parseInt(document.getElementById('metaSlider').value, 10) : null;
-
-            const yearMin = parseInt(yearMinSlider.value);
-            const yearMax = parseInt(yearMaxSlider.value);
-
-            return items.filter(item => {
-                // Year filter
-                if (item.Year && item.Year !== 'N/A') {
-                    const yearMatch = item.Year.match(/\d{4}/);
-                    if (yearMatch) {
-                        const yr = parseInt(yearMatch[0], 10);
-                        if (yr < yearMin || yr > yearMax) return false;
-                    }
-                }
-
-                // Content rating
-                const itemRated = item.Rated || 'Not Rated';
-                if (!allowedRatings.has(itemRated)) return false;
-
-                // Genre — exclude if ALL genres are turned off
-                if (item.Genre && item.Genre !== 'N/A') {
-                    const itemGenres = item.Genre.split(', ');
-                    if (!itemGenres.some(g => allowedGenres.has(g))) return false;
-                }
-
-                // IMDb minimum
-                if (imdbMin !== null) {
-                    const score = getIMDb(item);
-                    if (score === null || score < imdbMin) return false;
-                }
-
-                // RT minimum
-                if (rtMin !== null) {
-                    const score = getRT(item);
-                    if (score === null || score < rtMin) return false;
-                }
-
-                // Metacritic minimum
-                if (metaMin !== null) {
-                    const score = getMeta(item);
-                    if (score === null || score < metaMin) return false;
-                }
-
-                return true;
-            });
+            isLoading = false;
+            applyBtn.disabled = false;
         }
 
         // --- Card rendering ---
@@ -1029,39 +649,28 @@
             card.className = 'card';
             card.addEventListener('click', () => showDetail(item));
 
-            const poster = item.Poster && item.Poster !== 'N/A'
-                ? item.Poster
+            const title = item.title || item.name || 'Untitled';
+            const year = (item.release_date || item.first_air_date || '').slice(0, 4);
+            const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
+            const poster = item.poster_path
+                ? `${IMG}/w200${item.poster_path}`
                 : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="120"><rect fill="%2330363d" width="80" height="120"/><text x="40" y="65" text-anchor="middle" fill="%238b949e" font-size="10">No Poster</text></svg>';
 
-            const rt = getRT(item);
-            const rtBadge = rt !== null
-                ? `<span class="badge rt ${rt >= 60 ? 'fresh' : ''}">${rt}% RT</span>`
-                : '';
-
-            const imdbScore = getIMDb(item);
-            const imdbBadge = imdbScore !== null
-                ? `<span class="badge imdb">IMDb ${imdbScore}</span>`
-                : '';
-
-            const metaScore = getMeta(item);
-            const metaBadge = metaScore !== null
-                ? `<span class="badge meta">Meta ${metaScore}</span>`
-                : '';
-
-            const genres = item.Genre && item.Genre !== 'N/A'
-                ? item.Genre.split(', ').slice(0, 2).map(g => `<span class="badge genre">${g}</span>`).join('')
-                : '';
+            const scoreCls = item.vote_average >= 7 ? 'score high' : 'score';
+            const genres = (item.genre_ids || []).slice(0, 2)
+                .map(id => genreMap[id] || '')
+                .filter(Boolean)
+                .map(g => `<span class="badge genre">${g}</span>`)
+                .join('');
 
             card.innerHTML = `
-                <img src="${poster}" alt="${item.Title}" loading="lazy">
+                <img src="${poster}" alt="${title}" loading="lazy">
                 <div class="card-info">
-                    <h3>${item.Title}</h3>
-                    <div class="meta">${item.Year} &middot; ${item.Type} &middot; ${item.Rated || 'NR'}</div>
+                    <h3>${title}</h3>
+                    <div class="meta">${year || '?'} &middot; ${currentType === 'tv' ? 'TV' : 'Movie'}</div>
                     <div class="badges">
-                        <span class="badge rating">${item.Rated || 'NR'}</span>
-                        ${imdbBadge}
-                        ${rtBadge}
-                        ${metaBadge}
+                        <span class="badge ${scoreCls}">${rating}</span>
+                        <span class="badge pop">#${Math.round(item.popularity)}</span>
                         ${genres}
                     </div>
                 </div>
@@ -1070,91 +679,72 @@
         }
 
         // --- Detail modal ---
-        function showDetail(item) {
-            const poster = item.Poster && item.Poster !== 'N/A' ? item.Poster : '';
-
-            let ratingsHTML = '';
-            if (item.Ratings) {
-                ratingsHTML = item.Ratings.map(r =>
-                    `<div class="detail-row"><span class="label">${r.Source}</span><span class="value">${r.Value}</span></div>`
-                ).join('');
-            }
-
-            modalContent.innerHTML = `
-                <h2>${item.Title}</h2>
-                <div class="detail-meta">${item.Year} &middot; ${item.Rated || 'NR'} &middot; ${item.Runtime || 'N/A'}</div>
-                ${poster ? `<img class="modal-poster" src="${poster}" alt="${item.Title}">` : ''}
-                <div class="badges" style="margin-bottom:12px;">
-                    ${item.Genre && item.Genre !== 'N/A' ? item.Genre.split(', ').map(g => `<span class="badge genre">${g}</span>`).join('') : ''}
-                </div>
-                <p class="plot">${item.Plot || 'No plot available.'}</p>
-                <div class="detail-row"><span class="label">Director</span><span class="value">${item.Director || 'N/A'}</span></div>
-                <div class="detail-row"><span class="label">Actors</span><span class="value">${item.Actors || 'N/A'}</span></div>
-                <div class="detail-row"><span class="label">Language</span><span class="value">${item.Language || 'N/A'}</span></div>
-                <div class="detail-row"><span class="label">Box Office</span><span class="value">${item.BoxOffice || 'N/A'}</span></div>
-                <div class="detail-row"><span class="label">Awards</span><span class="value">${item.Awards || 'N/A'}</span></div>
-                ${ratingsHTML}
-            `;
+        async function showDetail(item) {
+            const id = item.id;
+            const isTV = currentType === 'tv';
             modal.classList.add('open');
+            modalContent.innerHTML = '<div class="loading-box"><div class="spinner"></div></div>';
+
+            try {
+                const url = `${BASE}/${currentType}/${id}?api_key=${API_KEY}&append_to_response=credits,release_dates,content_ratings`;
+                const resp = await fetch(url);
+                const d = await resp.json();
+
+                const title = d.title || d.name;
+                const year = (d.release_date || d.first_air_date || '').slice(0, 4);
+                const runtime = d.runtime ? `${d.runtime} min` : (d.episode_run_time?.[0] ? `${d.episode_run_time[0]} min/ep` : 'N/A');
+                const poster = d.poster_path ? `${IMG}/w500${d.poster_path}` : '';
+                const rating = d.vote_average ? d.vote_average.toFixed(1) : 'N/A';
+
+                // Get US certification
+                let cert = 'NR';
+                if (isTV && d.content_ratings?.results) {
+                    const us = d.content_ratings.results.find(r => r.iso_3166_1 === 'US');
+                    if (us) cert = us.rating;
+                } else if (d.release_dates?.results) {
+                    const us = d.release_dates.results.find(r => r.iso_3166_1 === 'US');
+                    if (us) {
+                        const c = us.release_dates.find(r => r.certification);
+                        if (c) cert = c.certification;
+                    }
+                }
+
+                const genres = (d.genres || []).map(g => `<span class="badge genre">${g.name}</span>`).join('');
+
+                // Cast
+                const cast = (d.credits?.cast || []).slice(0, 5).map(c => c.name).join(', ') || 'N/A';
+                const director = (d.credits?.crew || []).find(c => c.job === 'Director')?.name || 'N/A';
+                const seasons = d.number_of_seasons ? `<div class="detail-row"><span class="label">Seasons</span><span class="value">${d.number_of_seasons}</span></div>` : '';
+
+                modalContent.innerHTML = `
+                    <h2>${title}</h2>
+                    <div class="detail-meta">${year} &middot; ${cert} &middot; ${runtime}</div>
+                    ${poster ? `<img class="modal-poster" src="${poster}" alt="${title}">` : ''}
+                    <div class="badges" style="margin-bottom:12px;">${genres}</div>
+                    <p class="plot">${d.overview || 'No overview available.'}</p>
+                    <div class="detail-row"><span class="label">Rating</span><span class="value">${rating} / 10 (${(d.vote_count || 0).toLocaleString()} votes)</span></div>
+                    <div class="detail-row"><span class="label">${isTV ? 'Creator' : 'Director'}</span><span class="value">${isTV ? (d.created_by?.map(c => c.name).join(', ') || 'N/A') : director}</span></div>
+                    <div class="detail-row"><span class="label">Cast</span><span class="value">${cast}</span></div>
+                    <div class="detail-row"><span class="label">Language</span><span class="value">${d.original_language?.toUpperCase() || 'N/A'}</span></div>
+                    ${seasons}
+                    <div class="detail-row"><span class="label">Status</span><span class="value">${d.status || 'N/A'}</span></div>
+                    ${d.budget ? `<div class="detail-row"><span class="label">Budget</span><span class="value">$${d.budget.toLocaleString()}</span></div>` : ''}
+                    ${d.revenue ? `<div class="detail-row"><span class="label">Revenue</span><span class="value">$${d.revenue.toLocaleString()}</span></div>` : ''}
+                `;
+            } catch (err) {
+                modalContent.innerHTML = '<p style="color:#f85149;">Failed to load details.</p>';
+                console.error(err);
+            }
         }
 
         modalClose.addEventListener('click', () => modal.classList.remove('open'));
         modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
 
-        // --- Sorting ---
-        function getSortValue(item, key) {
-            switch (key) {
-                case 'title': return (item.Title || '').toLowerCase();
-                case 'year': {
-                    const m = (item.Year || '').match(/\d{4}/);
-                    return m ? parseInt(m[0], 10) : 0;
-                }
-                case 'imdb': return getIMDb(item) ?? -1;
-                case 'rt': return getRT(item) ?? -1;
-                case 'meta': return getMeta(item) ?? -1;
-                default: return 0;
-            }
-        }
-
-        function renderSorted() {
-            const { key, asc } = currentSort;
-            displayedItems.sort((a, b) => {
-                const va = getSortValue(a, key);
-                const vb = getSortValue(b, key);
-                if (va < vb) return asc ? -1 : 1;
-                if (va > vb) return asc ? 1 : -1;
-                return 0;
-            });
-            resultsDiv.innerHTML = '';
-            displayedItems.forEach(item => resultsDiv.appendChild(createCard(item)));
-        }
-
-        document.querySelectorAll('.sort-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const key = btn.dataset.sort;
-
-                if (currentSort && currentSort.key === key) {
-                    // Toggle direction
-                    currentSort.asc = !currentSort.asc;
-                } else {
-                    // New sort: title defaults A-Z (asc), scores/year default high-to-low (desc)
-                    currentSort = { key, asc: key === 'title' };
-                }
-
-                // Update button styles
-                document.querySelectorAll('.sort-btn').forEach(b => {
-                    b.classList.remove('active');
-                    b.querySelector('.sort-arrow').textContent = '';
-                });
-                btn.classList.add('active');
-                btn.querySelector('.sort-arrow').textContent = currentSort.asc ? '\u25B2' : '\u25BC';
-
-                if (displayedItems.length > 0) renderSorted();
-            });
+        // Load more
+        loadMoreBtn.addEventListener('click', () => {
+            currentPage++;
+            doDiscover(false);
         });
-
-        // Discover more
-        loadMoreBtn.addEventListener('click', () => doDiscover(false));
     </script>
 </body>
 </html>
