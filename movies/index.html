@@ -655,7 +655,12 @@
             'dead','blood','black','world','death','game','life','day','city','time',
             'house','girl','blue','red','american','secret','lost','bad','big','one',
             'home','money','kill','good','story','new','wild','high','hard','john',
-            'fight','road','dream','code','island','summer','magic','ghost','iron','wolf'
+            'fight','road','dream','code','island','summer','magic','ghost','iron','wolf',
+            'back','boy','heart','run','sky','moon','deep','true','gold','age',
+            'fall','cold','broken','family','mission','captain','fast','long','great','power',
+            'return','super','little','alien','space','dragon','prince','queen','school','bridge',
+            'white','green','river','dog','cat','angel','devil','light','shadow','storm',
+            'street','tower','brave','final','rise','south','west','north','east','point'
         ];
 
         const searchInput = document.getElementById('searchInput');
@@ -851,17 +856,22 @@
                 updateLoadingText(`Checking ${uniqueItems.length} titles...`);
                 allDetails = await fetchAllDetails(uniqueItems.slice(0, 30));
             } else {
-                // No keyword: use discovery words + random years
-                const words = shuffle(DISCOVER_WORDS).slice(discoverIndex, discoverIndex + 6);
-                discoverIndex += 6;
+                // No keyword: use discovery words, mix of year-locked and open searches
+                const words = shuffle(DISCOVER_WORDS).slice(discoverIndex, discoverIndex + 10);
+                discoverIndex += 10;
                 if (discoverIndex >= DISCOVER_WORDS.length) discoverIndex = 0;
 
-                const years = pickYears(yearMin, yearMax, 3);
+                const years = pickYears(yearMin, yearMax, 5);
                 const searches = [];
-                for (const w of words) {
-                    // Search each word with a random year from the range
-                    const y = years[Math.floor(Math.random() * years.length)];
-                    searches.push(searchOMDb(w, y));
+                for (let i = 0; i < words.length; i++) {
+                    if (i < 5) {
+                        // Half with a year from the range for targeted results
+                        const y = years[i % years.length];
+                        searches.push(searchOMDb(words[i], y));
+                    } else {
+                        // Half without year lock for broader discovery
+                        searches.push(searchOMDb(words[i], null));
+                    }
                 }
                 const batches = await Promise.all(searches);
                 const ids = new Set();
@@ -875,7 +885,7 @@
                     }
                 }
                 updateLoadingText(`Checking ${uniqueItems.length} titles...`);
-                allDetails = await fetchAllDetails(uniqueItems.slice(0, 40));
+                allDetails = await fetchAllDetails(uniqueItems.slice(0, 50));
             }
 
             // Mark all as seen
