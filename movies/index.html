@@ -309,6 +309,40 @@
         .score-toggle.on::after { left: 17px; }
         .score-toggle.off::after { left: 3px; }
 
+        /* Sort bar */
+        .sort-bar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 4px;
+        }
+
+        .sort-btn {
+            padding: 8px 12px;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            background: #161b22;
+            color: #8b949e;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .sort-btn.active {
+            background: #1f6feb;
+            color: #fff;
+            border-color: #1f6feb;
+        }
+
+        .sort-arrow {
+            margin-left: 3px;
+            font-size: 10px;
+        }
+
         /* Results */
         .status {
             text-align: center;
@@ -592,6 +626,14 @@
         </div>
     </details>
 
+    <div class="sort-bar" id="sortBar">
+        <button class="sort-btn" data-sort="title">Title <span class="sort-arrow"></span></button>
+        <button class="sort-btn" data-sort="year">Year <span class="sort-arrow"></span></button>
+        <button class="sort-btn" data-sort="imdb">IMDb <span class="sort-arrow"></span></button>
+        <button class="sort-btn" data-sort="rt">RT <span class="sort-arrow"></span></button>
+        <button class="sort-btn" data-sort="meta">Metacritic <span class="sort-arrow"></span></button>
+    </div>
+
     <div id="status" class="status">Set your filters and tap "Find Movies" to discover titles.</div>
     <div id="results" class="results"></div>
     <button id="loadMore" class="load-more" style="display:none;">Discover More</button>
@@ -629,6 +671,9 @@
         let seenIDs = new Set();
         let discoverIndex = 0;
         let isLoading = false;
+        let displayedItems = [];
+        let currentSort = null;  // { key, asc }
+
 
         // --- Chip toggles (ratings & genres) ---
         document.querySelectorAll('.chip').forEach(chip => {
@@ -838,14 +883,22 @@
 
             const filtered = applyFilters(allDetails);
 
-            if (resultsDiv.children.length === 0 && filtered.length === 0) {
+            if (fresh) displayedItems = [];
+            displayedItems.push(...filtered);
+
+            if (displayedItems.length === 0) {
                 statusDiv.textContent = 'No matches for your current filters. Try adjusting them or tap "Discover More".';
             } else {
-                const total = resultsDiv.children.length + filtered.length;
-                statusDiv.textContent = `${total} title${total !== 1 ? 's' : ''} match your filters`;
+                statusDiv.textContent = `${displayedItems.length} title${displayedItems.length !== 1 ? 's' : ''} match your filters`;
             }
 
-            filtered.forEach(item => resultsDiv.appendChild(createCard(item)));
+            // Re-sort if a sort is active, otherwise just render new items
+            if (currentSort) {
+                renderSorted();
+            } else {
+                filtered.forEach(item => resultsDiv.appendChild(createCard(item)));
+            }
+
             loadMoreBtn.style.display = 'block';
             isLoading = false;
         }
@@ -1037,6 +1090,58 @@
 
         modalClose.addEventListener('click', () => modal.classList.remove('open'));
         modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+
+        // --- Sorting ---
+        function getSortValue(item, key) {
+            switch (key) {
+                case 'title': return (item.Title || '').toLowerCase();
+                case 'year': {
+                    const m = (item.Year || '').match(/\d{4}/);
+                    return m ? parseInt(m[0], 10) : 0;
+                }
+                case 'imdb': return getIMDb(item) ?? -1;
+                case 'rt': return getRT(item) ?? -1;
+                case 'meta': return getMeta(item) ?? -1;
+                default: return 0;
+            }
+        }
+
+        function renderSorted() {
+            const { key, asc } = currentSort;
+            displayedItems.sort((a, b) => {
+                const va = getSortValue(a, key);
+                const vb = getSortValue(b, key);
+                if (va < vb) return asc ? -1 : 1;
+                if (va > vb) return asc ? 1 : -1;
+                return 0;
+            });
+            resultsDiv.innerHTML = '';
+            displayedItems.forEach(item => resultsDiv.appendChild(createCard(item)));
+        }
+
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const key = btn.dataset.sort;
+
+                if (currentSort && currentSort.key === key) {
+                    // Toggle direction
+                    currentSort.asc = !currentSort.asc;
+                } else {
+                    // New sort: title defaults A-Z (asc), scores/year default high-to-low (desc)
+                    currentSort = { key, asc: key === 'title' };
+                }
+
+                // Update button styles
+                document.querySelectorAll('.sort-btn').forEach(b => {
+                    b.classList.remove('active');
+                    b.querySelector('.sort-arrow').textContent = '';
+                });
+                btn.classList.add('active');
+                btn.querySelector('.sort-arrow').textContent = currentSort.asc ? '\u25B2' : '\u25BC';
+
+                if (displayedItems.length > 0) renderSorted();
+            });
+        });
 
         // Discover more
         loadMoreBtn.addEventListener('click', () => doDiscover(false));
