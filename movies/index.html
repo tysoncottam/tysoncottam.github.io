@@ -460,15 +460,25 @@
 
         .load-more:active { background: #1c2128; }
 
+        .loading-box {
+            text-align: center;
+            padding: 32px 16px;
+        }
+
         .spinner {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #30363d;
+            width: 36px;
+            height: 36px;
+            border: 3px solid #30363d;
             border-top-color: #58a6ff;
             border-radius: 50%;
             animation: spin 0.6s linear infinite;
-            margin: 0 auto;
+            margin: 0 auto 12px;
+        }
+
+        .loading-text {
+            color: #8b949e;
+            font-size: 14px;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -478,8 +488,8 @@
     <h1>Movie & TV Search</h1>
 
     <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search movies & TV shows..." autocomplete="off">
-        <button id="searchBtn">Search</button>
+        <input type="text" id="searchInput" placeholder="Optional: narrow by keyword" autocomplete="off">
+        <button id="searchBtn">Find Movies</button>
     </div>
 
     <div class="type-toggle">
@@ -582,9 +592,9 @@
         </div>
     </details>
 
-    <div id="status" class="status">Search for a movie or TV show to get started.</div>
+    <div id="status" class="status">Set your filters and tap "Find Movies" to discover titles.</div>
     <div id="results" class="results"></div>
-    <button id="loadMore" class="load-more" style="display:none;">Load More Results</button>
+    <button id="loadMore" class="load-more" style="display:none;">Discover More</button>
 
     <div id="modal" class="modal-overlay">
         <div class="modal">
@@ -597,6 +607,15 @@
         const API_KEY = '9f12a726';
         const BASE = 'https://www.omdbapi.com/';
 
+        // Common search words used for discovery when no keyword is entered
+        const DISCOVER_WORDS = [
+            'the','man','love','night','dark','last','fire','star','king','war',
+            'dead','blood','black','world','death','game','life','day','city','time',
+            'house','girl','blue','red','american','secret','lost','bad','big','one',
+            'home','money','kill','good','story','new','wild','high','hard','john',
+            'fight','road','dream','code','island','summer','magic','ghost','iron','wolf'
+        ];
+
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
         const resultsDiv = document.getElementById('results');
@@ -607,9 +626,9 @@
         const modalClose = document.getElementById('modalClose');
 
         let currentType = '';
-        let currentQuery = '';
-        let currentPage = 1;
-        let totalResults = 0;
+        let seenIDs = new Set();
+        let discoverIndex = 0;
+        let isLoading = false;
 
         // --- Chip toggles (ratings & genres) ---
         document.querySelectorAll('.chip').forEach(chip => {
@@ -709,67 +728,157 @@
             });
         });
 
-        // --- Search ---
-        searchBtn.addEventListener('click', () => doSearch());
-        searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
-
-        async function doSearch() {
-            const q = searchInput.value.trim();
-            if (!q) return;
-            currentQuery = q;
-            currentPage = 1;
-            resultsDiv.innerHTML = '';
-            loadMoreBtn.style.display = 'none';
-            statusDiv.innerHTML = '<div class="spinner"></div>';
-            await fetchPage();
+        // --- Loading UI ---
+        function showLoading(msg) {
+            statusDiv.innerHTML = `<div class="loading-box"><div class="spinner"></div><div class="loading-text">${msg}</div></div>`;
         }
 
-        async function fetchPage() {
-            let url = `${BASE}?apikey=${API_KEY}&s=${encodeURIComponent(currentQuery)}&page=${currentPage}`;
-            if (currentType) url += `&type=${currentType}`;
+        function updateLoadingText(msg) {
+            const el = statusDiv.querySelector('.loading-text');
+            if (el) el.textContent = msg;
+        }
 
+        // --- Shuffle helper ---
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        // --- Pick random years from range ---
+        function pickYears(minY, maxY, count) {
+            const range = maxY - minY + 1;
+            if (range <= count) {
+                const years = [];
+                for (let y = minY; y <= maxY; y++) years.push(y);
+                return shuffle(years);
+            }
+            const years = new Set();
+            while (years.size < count) {
+                years.add(minY + Math.floor(Math.random() * range));
+            }
+            return [...years];
+        }
+
+        // --- Main search / discover ---
+        searchBtn.addEventListener('click', () => doDiscover(true));
+        searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doDiscover(true); });
+
+        async function doDiscover(fresh) {
+            if (isLoading) return;
+            isLoading = true;
+
+            if (fresh) {
+                resultsDiv.innerHTML = '';
+                seenIDs = new Set();
+                discoverIndex = 0;
+            }
+
+            loadMoreBtn.style.display = 'none';
+            showLoading('Searching...');
+
+            const keyword = searchInput.value.trim();
+            const yearMin = parseInt(yearMinSlider.value);
+            const yearMax = parseInt(yearMaxSlider.value);
+
+            let allDetails = [];
+
+            if (keyword) {
+                // User provided a keyword: search with it across a few years in range
+                const years = pickYears(yearMin, yearMax, 5);
+                const searches = years.map(y => searchOMDb(keyword, y));
+                // Also search without year restriction for broader results
+                searches.push(searchOMDb(keyword, null));
+                const batches = await Promise.all(searches);
+                const ids = new Set();
+                const uniqueItems = [];
+                for (const batch of batches) {
+                    for (const item of batch) {
+                        if (!ids.has(item.imdbID) && !seenIDs.has(item.imdbID)) {
+                            ids.add(item.imdbID);
+                            uniqueItems.push(item);
+                        }
+                    }
+                }
+                updateLoadingText(`Checking ${uniqueItems.length} titles...`);
+                allDetails = await fetchAllDetails(uniqueItems.slice(0, 30));
+            } else {
+                // No keyword: use discovery words + random years
+                const words = shuffle(DISCOVER_WORDS).slice(discoverIndex, discoverIndex + 6);
+                discoverIndex += 6;
+                if (discoverIndex >= DISCOVER_WORDS.length) discoverIndex = 0;
+
+                const years = pickYears(yearMin, yearMax, 3);
+                const searches = [];
+                for (const w of words) {
+                    // Search each word with a random year from the range
+                    const y = years[Math.floor(Math.random() * years.length)];
+                    searches.push(searchOMDb(w, y));
+                }
+                const batches = await Promise.all(searches);
+                const ids = new Set();
+                const uniqueItems = [];
+                for (const batch of batches) {
+                    for (const item of batch) {
+                        if (!ids.has(item.imdbID) && !seenIDs.has(item.imdbID)) {
+                            ids.add(item.imdbID);
+                            uniqueItems.push(item);
+                        }
+                    }
+                }
+                updateLoadingText(`Checking ${uniqueItems.length} titles...`);
+                allDetails = await fetchAllDetails(uniqueItems.slice(0, 40));
+            }
+
+            // Mark all as seen
+            allDetails.forEach(d => seenIDs.add(d.imdbID));
+
+            const filtered = applyFilters(allDetails);
+
+            if (resultsDiv.children.length === 0 && filtered.length === 0) {
+                statusDiv.textContent = 'No matches for your current filters. Try adjusting them or tap "Discover More".';
+            } else {
+                const total = resultsDiv.children.length + filtered.length;
+                statusDiv.textContent = `${total} title${total !== 1 ? 's' : ''} match your filters`;
+            }
+
+            filtered.forEach(item => resultsDiv.appendChild(createCard(item)));
+            loadMoreBtn.style.display = 'block';
+            isLoading = false;
+        }
+
+        async function searchOMDb(term, year) {
+            let url = `${BASE}?apikey=${API_KEY}&s=${encodeURIComponent(term)}`;
+            if (year) url += `&y=${year}`;
+            if (currentType) url += `&type=${currentType}`;
             try {
                 const resp = await fetch(url);
                 const data = await resp.json();
+                return data.Response === 'True' ? data.Search : [];
+            } catch { return []; }
+        }
 
-                if (data.Response === 'False') {
-                    statusDiv.textContent = currentPage === 1
-                        ? `No results found for "${currentQuery}".`
-                        : 'No more results.';
-                    loadMoreBtn.style.display = 'none';
-                    return;
-                }
-
-                totalResults = parseInt(data.totalResults, 10);
-
+        async function fetchAllDetails(items) {
+            // Fetch in batches of 10 to avoid hammering the API
+            const results = [];
+            for (let i = 0; i < items.length; i += 10) {
+                const batch = items.slice(i, i + 10);
                 const details = await Promise.all(
-                    data.Search.map(item => fetchDetails(item.imdbID))
+                    batch.map(item => fetchDetails(item.imdbID))
                 );
-
-                const filtered = applyFilters(details);
-
-                if (currentPage === 1 && filtered.length === 0 && details.length > 0) {
-                    statusDiv.textContent = 'Results found but all excluded by your filters. Try toggling some back on or load more.';
-                } else if (currentPage === 1) {
-                    statusDiv.textContent = `Showing results for "${currentQuery}" (${totalResults} total found)`;
-                }
-
-                filtered.forEach(item => resultsDiv.appendChild(createCard(item)));
-
-                if (currentPage * 10 < totalResults) {
-                    loadMoreBtn.style.display = 'block';
-                } else {
-                    loadMoreBtn.style.display = 'none';
-                }
-            } catch (err) {
-                statusDiv.textContent = 'Error fetching results. Check your connection.';
-                console.error(err);
+                results.push(...details.filter(d => d && d.Response !== 'False'));
             }
+            return results;
         }
 
         async function fetchDetails(imdbID) {
-            const resp = await fetch(`${BASE}?apikey=${API_KEY}&i=${imdbID}`);
-            return resp.json();
+            try {
+                const resp = await fetch(`${BASE}?apikey=${API_KEY}&i=${imdbID}`);
+                return resp.json();
+            } catch { return null; }
         }
 
         // --- Helpers to read scores ---
@@ -791,15 +900,12 @@
 
         // --- Filtering ---
         function applyFilters(items) {
-            // Collect enabled ratings
             const allowedRatings = new Set();
             document.querySelectorAll('#ratingChips .chip.on').forEach(c => allowedRatings.add(c.dataset.value));
 
-            // Collect enabled genres
             const allowedGenres = new Set();
             document.querySelectorAll('#genreChips .chip.on').forEach(c => allowedGenres.add(c.dataset.value));
 
-            // Score thresholds
             const imdbOn = document.getElementById('imdbToggle').classList.contains('on');
             const imdbMin = imdbOn ? parseFloat(document.getElementById('imdbSlider').value) : null;
 
@@ -809,12 +915,11 @@
             const metaOn = document.getElementById('metaToggle').classList.contains('on');
             const metaMin = metaOn ? parseInt(document.getElementById('metaSlider').value, 10) : null;
 
-            // Year range
-            const yearMin = parseInt(document.getElementById('yearMinSlider').value);
-            const yearMax = parseInt(document.getElementById('yearMaxSlider').value);
+            const yearMin = parseInt(yearMinSlider.value);
+            const yearMax = parseInt(yearMaxSlider.value);
 
             return items.filter(item => {
-                // Year filter — parse the first 4-digit year from the Year field
+                // Year filter
                 if (item.Year && item.Year !== 'N/A') {
                     const yearMatch = item.Year.match(/\d{4}/);
                     if (yearMatch) {
@@ -823,15 +928,14 @@
                     }
                 }
 
-                // Content rating filter
+                // Content rating
                 const itemRated = item.Rated || 'Not Rated';
                 if (!allowedRatings.has(itemRated)) return false;
 
-                // Genre filter — exclude if ALL of the item's genres are turned off
+                // Genre — exclude if ALL genres are turned off
                 if (item.Genre && item.Genre !== 'N/A') {
                     const itemGenres = item.Genre.split(', ');
-                    const hasAllowed = itemGenres.some(g => allowedGenres.has(g));
-                    if (!hasAllowed) return false;
+                    if (!itemGenres.some(g => allowedGenres.has(g))) return false;
                 }
 
                 // IMDb minimum
@@ -934,13 +1038,8 @@
         modalClose.addEventListener('click', () => modal.classList.remove('open'));
         modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
 
-        // Load more
-        loadMoreBtn.addEventListener('click', async () => {
-            currentPage++;
-            loadMoreBtn.textContent = 'Loading...';
-            await fetchPage();
-            loadMoreBtn.textContent = 'Load More Results';
-        });
+        // Discover more
+        loadMoreBtn.addEventListener('click', () => doDiscover(false));
     </script>
 </body>
 </html>
