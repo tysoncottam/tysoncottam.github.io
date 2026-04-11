@@ -109,29 +109,23 @@
         .chip.on { background: #1f6feb; color: #fff; border-color: #1f6feb; }
         .chip.off { background: #21262d; color: #484f58; border-color: #30363d; text-decoration: line-through; }
 
-        /* Max rating segmented control */
-        .rating-seg {
-            display: flex;
-            gap: 0;
+        /* Reset button */
+        .btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
+
+        .reset-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
             border: 1px solid #30363d;
             border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .rating-seg button {
-            flex: 1;
-            padding: 10px 4px;
-            border: none;
-            border-right: 1px solid #30363d;
             background: #161b22;
-            color: #8b949e;
-            font-size: 12px;
+            color: #f85149;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
         }
 
-        .rating-seg button:last-child { border-right: none; }
-        .rating-seg button.active { background: #1f6feb; color: #fff; }
+        .reset-btn:active { background: #21262d; }
 
         /* Year range slider */
         .year-range { margin-top: 8px; }
@@ -377,22 +371,16 @@
     <div class="type-toggle">
         <button class="active" data-type="movie">Movies</button>
         <button data-type="tv">TV Shows</button>
+        <button data-type="both">Both</button>
     </div>
 
     <details class="filters" open>
         <summary>Filters</summary>
 
-        <!-- Max Content Rating -->
+        <!-- Content Rating (toggle chips, filtered via OMDb) -->
         <div class="filter-section">
-            <div class="filter-section-label">Max Content Rating</div>
-            <div class="rating-seg" id="ratingSeg">
-                <button data-cert="G">G</button>
-                <button data-cert="PG">PG</button>
-                <button data-cert="PG-13">PG-13</button>
-                <button data-cert="R">R</button>
-                <button data-cert="NC-17">NC-17</button>
-                <button data-cert="" class="active">Any</button>
-            </div>
+            <div class="filter-section-label">Content Rating (tap to exclude)</div>
+            <div class="chip-group" id="ratingChips"></div>
         </div>
 
         <!-- Genre toggles -->
@@ -459,7 +447,7 @@
                 </div>
                 <div class="score-row">
                     <button class="score-toggle off" id="rtToggle"></button>
-                    <span class="platform-label rt">RT</span>
+                    <span class="platform-label rt">RT Critics</span>
                     <input type="range" id="rtSlider" min="0" max="100" step="5" value="75" disabled>
                     <span class="score-value score-off" id="rtValue">OFF</span>
                 </div>
@@ -474,7 +462,10 @@
         </div>
     </details>
 
-    <button class="apply-btn" id="applyBtn">Find Movies</button>
+    <div class="btn-row">
+        <button class="apply-btn" id="applyBtn" style="margin-bottom:0;">Find Movies</button>
+        <button class="reset-btn" id="resetBtn">Reset</button>
+    </div>
 
     <div class="sort-bar" id="sortBar">
         <button class="sort-btn active" data-sort="popularity.desc">Popular <span class="sort-arrow">&darr;</span></button>
@@ -500,8 +491,10 @@
         const BASE = 'https://api.themoviedb.org/3';
         const OMDB_BASE = 'https://www.omdbapi.com/';
         const IMG = 'https://image.tmdb.org/t/p';
+        const STORAGE_KEY = 'movieFilterState';
 
         const applyBtn = document.getElementById('applyBtn');
+        const resetBtn = document.getElementById('resetBtn');
         const resultsDiv = document.getElementById('results');
         const statusDiv = document.getElementById('status');
         const loadMoreBtn = document.getElementById('loadMore');
@@ -536,58 +529,46 @@
         }
         loadGenres();
 
-        // --- Chip toggles ---
-        document.querySelectorAll('.chip').forEach(chip => {
+        // --- Chip toggles (genre) ---
+        document.querySelectorAll('#genreChips .chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 chip.classList.toggle('on');
                 chip.classList.toggle('off');
+                saveFilters();
             });
         });
 
-        // --- Content rating segmented control ---
-        const movieCerts = [
-            { cert: 'G', label: 'G' },
-            { cert: 'PG', label: 'PG' },
-            { cert: 'PG-13', label: 'PG-13' },
-            { cert: 'R', label: 'R' },
-            { cert: 'NC-17', label: 'NC-17' },
-            { cert: '', label: 'Any' }
-        ];
-        const tvCerts = [
-            { cert: 'TV-Y', label: 'TV-Y' },
-            { cert: 'TV-G', label: 'TV-G' },
-            { cert: 'TV-PG', label: 'TV-PG' },
-            { cert: 'TV-14', label: 'TV-14' },
-            { cert: 'TV-MA', label: 'TV-MA' },
-            { cert: '', label: 'Any' }
-        ];
-        let maxCert = '';
+        // --- Content rating chips (built dynamically per type) ---
+        const movieRatings = ['G', 'PG', 'PG-13', 'R', 'NC-17', 'NR'];
+        const tvRatings = ['TV-Y', 'TV-G', 'TV-PG', 'TV-14', 'TV-MA', 'NR'];
+        const bothRatings = ['G', 'PG', 'PG-13', 'R', 'NC-17', 'TV-Y', 'TV-G', 'TV-PG', 'TV-14', 'TV-MA', 'NR'];
 
-        function buildRatingButtons() {
-            const certs = currentType === 'tv' ? tvCerts : movieCerts;
-            const seg = document.getElementById('ratingSeg');
-            seg.innerHTML = '';
-            maxCert = '';
-            certs.forEach(c => {
-                const btn = document.createElement('button');
-                btn.dataset.cert = c.cert;
-                btn.textContent = c.label;
-                if (c.cert === '') btn.classList.add('active');
-                btn.addEventListener('click', () => {
-                    seg.querySelector('.active').classList.remove('active');
-                    btn.classList.add('active');
-                    maxCert = btn.dataset.cert;
+        function buildRatingChips(savedOff) {
+            const ratings = currentType === 'tv' ? tvRatings : currentType === 'both' ? bothRatings : movieRatings;
+            const container = document.getElementById('ratingChips');
+            container.innerHTML = '';
+            const offSet = new Set(savedOff || []);
+            ratings.forEach(r => {
+                const chip = document.createElement('span');
+                chip.className = offSet.has(r) ? 'chip off' : 'chip on';
+                chip.dataset.value = r;
+                chip.textContent = r;
+                chip.addEventListener('click', () => {
+                    chip.classList.toggle('on');
+                    chip.classList.toggle('off');
+                    saveFilters();
                 });
-                seg.appendChild(btn);
+                container.appendChild(chip);
             });
         }
 
-        buildRatingButtons();
+        buildRatingChips();
 
         // --- Rating slider ---
         ratingSlider.addEventListener('input', () => {
             const v = parseFloat(ratingSlider.value);
             ratingValue.textContent = v === 0 ? 'Any' : v.toFixed(1) + '+';
+            saveFilters();
         });
 
         // --- OMDb score toggle + slider wiring ---
@@ -608,10 +589,12 @@
                     valueEl.textContent = slider.value + (sliderId === 'imdbSlider' ? '' : '%');
                     valueEl.classList.remove('score-off');
                 }
+                saveFilters();
             });
 
             slider.addEventListener('input', () => {
                 valueEl.textContent = slider.value + (sliderId === 'imdbSlider' ? '' : '%');
+                saveFilters();
             });
         }
 
@@ -620,9 +603,12 @@
         wireScore('metaToggle', 'metaSlider', 'metaValue');
 
         function omdbFiltersActive() {
-            return document.getElementById('imdbToggle').classList.contains('on')
+            // OMDb needed if any score toggle is on OR any rating chip is off
+            const scoreOn = document.getElementById('imdbToggle').classList.contains('on')
                 || document.getElementById('rtToggle').classList.contains('on')
                 || document.getElementById('metaToggle').classList.contains('on');
+            const anyRatingOff = document.querySelectorAll('#ratingChips .chip.off').length > 0;
+            return scoreOn || anyRatingOff;
         }
 
         // --- Year range dual slider ---
@@ -645,24 +631,24 @@
             if (parseInt(yearMinSlider.value) > parseInt(yearMaxSlider.value))
                 yearMinSlider.value = yearMaxSlider.value;
             yearMinInput.value = yearMinSlider.value;
-            updateYearTrack();
+            updateYearTrack(); saveFilters();
         });
 
         yearMaxSlider.addEventListener('input', () => {
             if (parseInt(yearMaxSlider.value) < parseInt(yearMinSlider.value))
                 yearMaxSlider.value = yearMinSlider.value;
             yearMaxInput.value = yearMaxSlider.value;
-            updateYearTrack();
+            updateYearTrack(); saveFilters();
         });
 
         yearMinInput.addEventListener('change', () => {
             let v = Math.max(1900, Math.min(parseInt(yearMinInput.value) || 1900, parseInt(yearMaxSlider.value)));
-            yearMinInput.value = v; yearMinSlider.value = v; updateYearTrack();
+            yearMinInput.value = v; yearMinSlider.value = v; updateYearTrack(); saveFilters();
         });
 
         yearMaxInput.addEventListener('change', () => {
             let v = Math.min(2026, Math.max(parseInt(yearMaxInput.value) || 2026, parseInt(yearMinSlider.value)));
-            yearMaxInput.value = v; yearMaxSlider.value = v; updateYearTrack();
+            yearMaxInput.value = v; yearMaxSlider.value = v; updateYearTrack(); saveFilters();
         });
 
         updateYearTrack();
@@ -673,8 +659,10 @@
                 document.querySelector('.type-toggle .active').classList.remove('active');
                 btn.classList.add('active');
                 currentType = btn.dataset.type;
-                applyBtn.textContent = currentType === 'tv' ? 'Find TV Shows' : 'Find Movies';
-                buildRatingButtons();
+                const labels = { movie: 'Find Movies', tv: 'Find TV Shows', both: 'Find Movies & TV' };
+                applyBtn.textContent = labels[currentType];
+                buildRatingChips();
+                saveFilters();
             });
         });
 
@@ -710,16 +698,16 @@
         }
 
         // --- Build discover URL ---
-        function buildURL(page) {
-            const isTV = currentType === 'tv';
-            let url = `${BASE}/discover/${currentType}?api_key=${API_KEY}&language=en-US&page=${page}`;
+        function buildURL(page, type) {
+            const t = type || currentType;
+            const isTV = t === 'tv';
+            let url = `${BASE}/discover/${t}?api_key=${API_KEY}&language=en-US&page=${page}`;
 
-            // Sort
             let sort = currentSort;
             if (isTV) sort = sort.replace('primary_release_date', 'first_air_date');
             url += `&sort_by=${sort}`;
 
-            // Genres — use without_genres to exclude turned-off genres (strict mode)
+            // Genres — strict exclude
             const offChips = document.querySelectorAll('#genreChips .chip.off');
             if (offChips.length > 0) {
                 const excludeIds = new Set();
@@ -739,15 +727,10 @@
                 url += `&primary_release_date.gte=${yMin}-01-01&primary_release_date.lte=${yMax}-12-31`;
             }
 
-            // Rating
+            // TMDb rating
             const minRating = parseFloat(ratingSlider.value);
             if (minRating > 0) {
                 url += `&vote_average.gte=${minRating}&vote_count.gte=50`;
-            }
-
-            // Certification
-            if (maxCert) {
-                url += `&certification_country=US&certification.lte=${maxCert}`;
             }
 
             return url;
@@ -755,6 +738,18 @@
 
         // --- Main discover ---
         applyBtn.addEventListener('click', () => doDiscover(true));
+
+        // --- Fetch a single page for a given type ---
+        async function fetchPage(page, type) {
+            const url = buildURL(page, type);
+            const resp = await fetch(url);
+            const data = await resp.json();
+            // Tag each result with its media type
+            if (data.results) {
+                data.results.forEach(r => { r._mediaType = type; });
+            }
+            return data;
+        }
 
         async function doDiscover(fresh) {
             if (isLoading) return;
@@ -778,42 +773,55 @@
             try {
                 while (attempts < maxAttempts) {
                     attempts++;
-                    const url = buildURL(currentPage);
-                    const resp = await fetch(url);
-                    const data = await resp.json();
+                    let items = [];
+                    let maxPages = 0;
 
-                    totalPages = data.total_pages || 0;
-                    const totalResults = data.total_results || 0;
+                    if (currentType === 'both') {
+                        // Fetch both movie and TV in parallel
+                        const [mData, tData] = await Promise.all([
+                            fetchPage(currentPage, 'movie'),
+                            fetchPage(currentPage, 'tv')
+                        ]);
+                        items = [...(mData.results || []), ...(tData.results || [])];
+                        maxPages = Math.max(mData.total_pages || 0, tData.total_pages || 0);
+                        totalPages = maxPages;
+                    } else {
+                        const data = await fetchPage(currentPage, currentType);
+                        items = data.results || [];
+                        totalPages = data.total_pages || 0;
+                    }
 
-                    if (!data.results || data.results.length === 0) {
+                    if (items.length === 0) {
                         if (totalShown === 0) {
                             statusDiv.textContent = 'No results match your filters. Try broadening them.';
                         } else {
-                            statusDiv.textContent = `${totalShown} titles shown (no more pages to check)`;
+                            statusDiv.textContent = `${totalShown} titles shown (no more pages)`;
                         }
                         break;
                     }
 
-                    // Client-side genre strict filter: remove any result with an excluded genre
+                    // Client-side genre strict filter
                     const excludedGenreIds = new Set();
                     document.querySelectorAll('#genreChips .chip.off').forEach(c => {
-                        const id = currentType === 'tv' ? c.dataset.tv : c.dataset.movie;
-                        if (id) excludedGenreIds.add(parseInt(id, 10));
+                        // For "both", exclude using both movie and TV genre IDs
+                        if (currentType === 'both') {
+                            if (c.dataset.movie) excludedGenreIds.add(parseInt(c.dataset.movie, 10));
+                            if (c.dataset.tv) excludedGenreIds.add(parseInt(c.dataset.tv, 10));
+                        } else {
+                            const id = currentType === 'tv' ? c.dataset.tv : c.dataset.movie;
+                            if (id) excludedGenreIds.add(parseInt(id, 10));
+                        }
                     });
-
-                    let items = data.results;
                     if (excludedGenreIds.size > 0) {
                         items = items.filter(item =>
                             !(item.genre_ids || []).some(gid => excludedGenreIds.has(gid))
                         );
                     }
 
-                    // If OMDb filters are active, enrich each result
+                    // OMDb enrichment + filtering
                     if (useOmdb) {
-                        statusDiv.querySelector('.loading-text').textContent =
-                            `Checking scores for page ${currentPage}...`;
-
-                        // Get IMDb IDs via TMDb external_ids for TV, or imdb_id for movies
+                        const loadingText = statusDiv.querySelector('.loading-text');
+                        if (loadingText) loadingText.textContent = `Checking scores for page ${currentPage}...`;
                         const enriched = await enrichWithOMDb(items);
                         items = applyOMDbFilters(enriched);
                     }
@@ -821,18 +829,15 @@
                     items.forEach(item => resultsDiv.appendChild(createCard(item)));
                     totalShown = resultsDiv.children.length;
 
-                    statusDiv.textContent = `${totalShown} titles shown (${totalResults.toLocaleString()} total before score filters)`;
+                    statusDiv.textContent = `${totalShown} titles shown`;
 
-                    // If we have enough results or no more pages, stop
                     if (totalShown >= MIN_RESULTS || currentPage >= totalPages) break;
-
-                    // Auto-load next page to fill results
                     currentPage++;
                 }
 
                 loadMoreBtn.style.display = currentPage < totalPages ? 'block' : 'none';
                 if (totalShown === 0 && attempts > 0) {
-                    statusDiv.textContent = `Checked ${attempts} page(s) but no titles passed your score filters. Try lowering IMDb/RT/Metacritic minimums.`;
+                    statusDiv.textContent = `Checked ${attempts} page(s) but no titles passed your filters. Try adjusting them.`;
                 }
             } catch (err) {
                 statusDiv.textContent = 'Error fetching results. Check your connection.';
@@ -845,20 +850,17 @@
 
         // --- Enrich TMDb results with OMDb data ---
         async function enrichWithOMDb(tmdbItems) {
-            // Fetch TMDb details to get imdb_id, then OMDb data
             const enriched = await Promise.all(tmdbItems.map(async (item) => {
                 try {
-                    // Get IMDb ID from TMDb
-                    const detailUrl = currentType === 'tv'
+                    const mediaType = item._mediaType || currentType;
+                    const detailUrl = mediaType === 'tv'
                         ? `${BASE}/tv/${item.id}/external_ids?api_key=${API_KEY}`
                         : `${BASE}/movie/${item.id}?api_key=${API_KEY}`;
                     const detailResp = await fetch(detailUrl);
                     const detail = await detailResp.json();
                     const imdbID = detail.imdb_id;
-
                     if (!imdbID) return { ...item, omdb: null };
 
-                    // Fetch OMDb
                     const omdbResp = await fetch(`${OMDB_BASE}?apikey=${OMDB_KEY}&i=${imdbID}`);
                     const omdb = await omdbResp.json();
                     return { ...item, omdb: omdb.Response === 'True' ? omdb : null };
@@ -869,7 +871,7 @@
             return enriched;
         }
 
-        // --- Apply OMDb filters ---
+        // --- Apply OMDb filters (scores + content rating) ---
         function applyOMDbFilters(items) {
             const imdbOn = document.getElementById('imdbToggle').classList.contains('on');
             const imdbMin = imdbOn ? parseFloat(document.getElementById('imdbSlider').value) : null;
@@ -880,25 +882,42 @@
             const metaOn = document.getElementById('metaToggle').classList.contains('on');
             const metaMin = metaOn ? parseInt(document.getElementById('metaSlider').value, 10) : null;
 
+            // Content rating: collect allowed ratings
+            const allowedRatings = new Set();
+            document.querySelectorAll('#ratingChips .chip.on').forEach(c => allowedRatings.add(c.dataset.value));
+            const anyRatingOff = document.querySelectorAll('#ratingChips .chip.off').length > 0;
+
             return items.filter(item => {
                 const o = item.omdb;
-                if (!o) return false; // No OMDb data = can't verify scores, skip
 
-                if (imdbMin !== null) {
-                    const v = parseFloat(o.imdbRating);
-                    if (isNaN(v) || v < imdbMin) return false;
+                // Content rating filter (only if chips are toggled off)
+                if (anyRatingOff) {
+                    if (!o) return false;
+                    const rated = o.Rated || 'NR';
+                    const normalized = (rated === 'Not Rated' || rated === 'Unrated' || rated === 'N/A') ? 'NR' : rated;
+                    if (!allowedRatings.has(normalized)) return false;
                 }
 
-                if (rtMin !== null) {
-                    const rt = o.Ratings?.find(r => r.Source === 'Rotten Tomatoes');
-                    if (!rt) return false;
-                    const v = parseInt(rt.Value, 10);
-                    if (isNaN(v) || v < rtMin) return false;
-                }
+                // Score filters (only if toggled on)
+                if (imdbMin !== null || rtMin !== null || metaMin !== null) {
+                    if (!o) return false;
 
-                if (metaMin !== null) {
-                    const v = parseInt(o.Metascore, 10);
-                    if (isNaN(v) || v < metaMin) return false;
+                    if (imdbMin !== null) {
+                        const v = parseFloat(o.imdbRating);
+                        if (isNaN(v) || v < imdbMin) return false;
+                    }
+
+                    if (rtMin !== null) {
+                        const rt = o.Ratings?.find(r => r.Source === 'Rotten Tomatoes');
+                        if (!rt) return false;
+                        const v = parseInt(rt.Value, 10);
+                        if (isNaN(v) || v < rtMin) return false;
+                    }
+
+                    if (metaMin !== null) {
+                        const v = parseInt(o.Metascore, 10);
+                        if (isNaN(v) || v < metaMin) return false;
+                    }
                 }
 
                 return true;
@@ -945,7 +964,7 @@
                 <img src="${poster}" alt="${title}" loading="lazy">
                 <div class="card-info">
                     <h3>${title}</h3>
-                    <div class="meta">${year || '?'} &middot; ${currentType === 'tv' ? 'TV' : 'Movie'}</div>
+                    <div class="meta">${year || '?'} &middot; ${(item._mediaType || currentType) === 'tv' ? 'TV' : 'Movie'}</div>
                     <div class="badges">
                         <span class="badge ${scoreCls}">${rating}</span>
                         ${omdbBadges}
@@ -969,13 +988,14 @@
         // --- Detail modal ---
         async function showDetail(item) {
             const id = item.id;
-            const isTV = currentType === 'tv';
+            const mediaType = item._mediaType || currentType;
+            const isTV = mediaType === 'tv';
             modal.classList.add('open');
             modalContent.innerHTML = '<div class="loading-box"><div class="spinner"></div><div class="loading-text">Loading details...</div></div>';
 
             try {
                 // Fetch TMDb details first
-                const tmdbUrl = `${BASE}/${currentType}/${id}?api_key=${API_KEY}&append_to_response=credits,release_dates,content_ratings,external_ids`;
+                const tmdbUrl = `${BASE}/${isTV ? 'tv' : 'movie'}/${id}?api_key=${API_KEY}&append_to_response=credits,release_dates,content_ratings,external_ids`;
                 const tmdbResp = await fetch(tmdbUrl);
                 const d = await tmdbResp.json();
 
@@ -1024,7 +1044,7 @@
                             <div class="sc-sub" id="scImdbSub"></div>
                         </div>
                         <div class="score-card">
-                            <div class="sc-label">Rotten Tomatoes</div>
+                            <div class="sc-label">RT Critics</div>
                             <div class="sc-value rt" id="scRT">...</div>
                             <div class="sc-sub" id="scRTSub"></div>
                         </div>
@@ -1103,6 +1123,146 @@
         loadMoreBtn.addEventListener('click', () => {
             currentPage++;
             doDiscover(false);
+        });
+
+        // --- Save / Load / Reset filters ---
+        function saveFilters() {
+            const state = {
+                type: currentType,
+                sort: currentSort,
+                yearMin: yearMinSlider.value,
+                yearMax: yearMaxSlider.value,
+                tmdbRating: ratingSlider.value,
+                genresOff: [...document.querySelectorAll('#genreChips .chip.off')].map(c => c.textContent),
+                ratingsOff: [...document.querySelectorAll('#ratingChips .chip.off')].map(c => c.dataset.value),
+                imdbOn: document.getElementById('imdbToggle').classList.contains('on'),
+                imdbVal: document.getElementById('imdbSlider').value,
+                rtOn: document.getElementById('rtToggle').classList.contains('on'),
+                rtVal: document.getElementById('rtSlider').value,
+                metaOn: document.getElementById('metaToggle').classList.contains('on'),
+                metaVal: document.getElementById('metaSlider').value
+            };
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+        }
+
+        function loadFilters() {
+            let state;
+            try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch {}
+            if (!state) return;
+
+            // Type
+            if (state.type) {
+                currentType = state.type;
+                document.querySelectorAll('.type-toggle button').forEach(b => {
+                    b.classList.toggle('active', b.dataset.type === currentType);
+                });
+                const labels = { movie: 'Find Movies', tv: 'Find TV Shows', both: 'Find Movies & TV' };
+                applyBtn.textContent = labels[currentType];
+            }
+
+            // Sort
+            if (state.sort) {
+                currentSort = state.sort;
+                document.querySelectorAll('.sort-btn').forEach(b => {
+                    const isActive = b.dataset.sort === currentSort || b.dataset.sort.split('.')[0] === currentSort.split('.')[0];
+                    b.classList.toggle('active', isActive);
+                    if (isActive) {
+                        b.dataset.sort = currentSort;
+                        const dir = currentSort.split('.')[1];
+                        b.querySelector('.sort-arrow').textContent = dir === 'asc' ? '\u25B2' : '\u25BC';
+                    } else {
+                        b.querySelector('.sort-arrow').textContent = '';
+                    }
+                });
+            }
+
+            // Year
+            if (state.yearMin) { yearMinSlider.value = state.yearMin; yearMinInput.value = state.yearMin; }
+            if (state.yearMax) { yearMaxSlider.value = state.yearMax; yearMaxInput.value = state.yearMax; }
+            updateYearTrack();
+
+            // TMDb rating
+            if (state.tmdbRating) {
+                ratingSlider.value = state.tmdbRating;
+                const v = parseFloat(state.tmdbRating);
+                ratingValue.textContent = v === 0 ? 'Any' : v.toFixed(1) + '+';
+            }
+
+            // Genres
+            if (state.genresOff) {
+                const offSet = new Set(state.genresOff);
+                document.querySelectorAll('#genreChips .chip').forEach(c => {
+                    if (offSet.has(c.textContent)) { c.classList.remove('on'); c.classList.add('off'); }
+                });
+            }
+
+            // Rating chips
+            buildRatingChips(state.ratingsOff || []);
+
+            // Score toggles
+            function restoreToggle(id, sliderId, valueId, isOn, val, suffix) {
+                const toggle = document.getElementById(id);
+                const slider = document.getElementById(sliderId);
+                const valueEl = document.getElementById(valueId);
+                if (isOn) {
+                    toggle.classList.remove('off'); toggle.classList.add('on');
+                    slider.disabled = false; slider.value = val;
+                    valueEl.textContent = val + suffix; valueEl.classList.remove('score-off');
+                } else if (val) {
+                    slider.value = val;
+                }
+            }
+            restoreToggle('imdbToggle', 'imdbSlider', 'imdbValue', state.imdbOn, state.imdbVal, '');
+            restoreToggle('rtToggle', 'rtSlider', 'rtValue', state.rtOn, state.rtVal, '%');
+            restoreToggle('metaToggle', 'metaSlider', 'metaValue', state.metaOn, state.metaVal, '%');
+        }
+
+        loadFilters();
+
+        // Reset
+        resetBtn.addEventListener('click', () => {
+            try { localStorage.removeItem(STORAGE_KEY); } catch {}
+            currentType = 'movie';
+            currentSort = 'popularity.desc';
+            document.querySelectorAll('.type-toggle button').forEach(b => b.classList.toggle('active', b.dataset.type === 'movie'));
+            applyBtn.textContent = 'Find Movies';
+
+            // Reset sort buttons
+            document.querySelectorAll('.sort-btn').forEach(b => {
+                b.classList.remove('active');
+                b.querySelector('.sort-arrow').textContent = '';
+            });
+            const popBtn = document.querySelector('[data-sort="popularity.desc"]');
+            if (popBtn) { popBtn.classList.add('active'); popBtn.querySelector('.sort-arrow').textContent = '\u25BC'; }
+
+            // Reset genres
+            document.querySelectorAll('#genreChips .chip').forEach(c => { c.classList.remove('off'); c.classList.add('on'); });
+
+            // Reset years
+            yearMinSlider.value = 1900; yearMinInput.value = 1900;
+            yearMaxSlider.value = 2026; yearMaxInput.value = 2026;
+            updateYearTrack();
+
+            // Reset TMDb rating
+            ratingSlider.value = 0; ratingValue.textContent = 'Any';
+
+            // Reset score toggles
+            ['imdb', 'rt', 'meta'].forEach(prefix => {
+                const toggle = document.getElementById(prefix + 'Toggle');
+                const slider = document.getElementById(prefix + 'Slider');
+                const val = document.getElementById(prefix + 'Value');
+                toggle.classList.remove('on'); toggle.classList.add('off');
+                slider.disabled = true;
+                val.textContent = 'OFF'; val.classList.add('score-off');
+            });
+
+            // Rebuild rating chips
+            buildRatingChips();
+
+            // Clear results
+            resultsDiv.innerHTML = '';
+            loadMoreBtn.style.display = 'none';
+            statusDiv.textContent = 'Filters reset. Tap "Find Movies" to discover titles.';
         });
     </script>
 </body>
