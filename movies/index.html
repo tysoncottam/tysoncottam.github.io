@@ -691,16 +691,15 @@
             if (isTV) sort = sort.replace('primary_release_date', 'first_air_date');
             url += `&sort_by=${sort}`;
 
-            // Genres — collect ON chips
-            const onChips = document.querySelectorAll('#genreChips .chip.on');
-            const allChips = document.querySelectorAll('#genreChips .chip');
-            if (onChips.length < allChips.length) {
-                const ids = new Set();
-                onChips.forEach(c => {
+            // Genres — use without_genres to exclude turned-off genres (strict mode)
+            const offChips = document.querySelectorAll('#genreChips .chip.off');
+            if (offChips.length > 0) {
+                const excludeIds = new Set();
+                offChips.forEach(c => {
                     const id = isTV ? c.dataset.tv : c.dataset.movie;
-                    if (id) ids.add(id);
+                    if (id) excludeIds.add(id);
                 });
-                if (ids.size > 0) url += `&with_genres=${[...ids].join('|')}`;
+                if (excludeIds.size > 0) url += `&without_genres=${[...excludeIds].join(',')}`;
             }
 
             // Year range
@@ -772,7 +771,19 @@
                         break;
                     }
 
+                    // Client-side genre strict filter: remove any result with an excluded genre
+                    const excludedGenreIds = new Set();
+                    document.querySelectorAll('#genreChips .chip.off').forEach(c => {
+                        const id = currentType === 'tv' ? c.dataset.tv : c.dataset.movie;
+                        if (id) excludedGenreIds.add(parseInt(id, 10));
+                    });
+
                     let items = data.results;
+                    if (excludedGenreIds.size > 0) {
+                        items = items.filter(item =>
+                            !(item.genre_ids || []).some(gid => excludedGenreIds.has(gid))
+                        );
+                    }
 
                     // If OMDb filters are active, enrich each result
                     if (useOmdb) {
