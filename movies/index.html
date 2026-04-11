@@ -545,17 +545,44 @@
         });
 
         // --- Content rating segmented control ---
-        const certOrder = ['G', 'PG', 'PG-13', 'R', 'NC-17'];
-        const tvCertMap = { 'G': 'TV-G', 'PG': 'TV-PG', 'PG-13': 'TV-14', 'R': 'TV-MA', 'NC-17': 'TV-MA' };
+        const movieCerts = [
+            { cert: 'G', label: 'G' },
+            { cert: 'PG', label: 'PG' },
+            { cert: 'PG-13', label: 'PG-13' },
+            { cert: 'R', label: 'R' },
+            { cert: 'NC-17', label: 'NC-17' },
+            { cert: '', label: 'Any' }
+        ];
+        const tvCerts = [
+            { cert: 'TV-Y', label: 'TV-Y' },
+            { cert: 'TV-G', label: 'TV-G' },
+            { cert: 'TV-PG', label: 'TV-PG' },
+            { cert: 'TV-14', label: 'TV-14' },
+            { cert: 'TV-MA', label: 'TV-MA' },
+            { cert: '', label: 'Any' }
+        ];
         let maxCert = '';
 
-        document.querySelectorAll('#ratingSeg button').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelector('#ratingSeg .active').classList.remove('active');
-                btn.classList.add('active');
-                maxCert = btn.dataset.cert;
+        function buildRatingButtons() {
+            const certs = currentType === 'tv' ? tvCerts : movieCerts;
+            const seg = document.getElementById('ratingSeg');
+            seg.innerHTML = '';
+            maxCert = '';
+            certs.forEach(c => {
+                const btn = document.createElement('button');
+                btn.dataset.cert = c.cert;
+                btn.textContent = c.label;
+                if (c.cert === '') btn.classList.add('active');
+                btn.addEventListener('click', () => {
+                    seg.querySelector('.active').classList.remove('active');
+                    btn.classList.add('active');
+                    maxCert = btn.dataset.cert;
+                });
+                seg.appendChild(btn);
             });
-        });
+        }
+
+        buildRatingButtons();
 
         // --- Rating slider ---
         ratingSlider.addEventListener('input', () => {
@@ -647,6 +674,7 @@
                 btn.classList.add('active');
                 currentType = btn.dataset.type;
                 applyBtn.textContent = currentType === 'tv' ? 'Find TV Shows' : 'Find Movies';
+                buildRatingButtons();
             });
         });
 
@@ -719,12 +747,7 @@
 
             // Certification
             if (maxCert) {
-                url += `&certification_country=US`;
-                if (isTV) {
-                    url += `&certification.lte=${tvCertMap[maxCert] || maxCert}`;
-                } else {
-                    url += `&certification.lte=${maxCert}`;
-                }
+                url += `&certification_country=US&certification.lte=${maxCert}`;
             }
 
             return url;
