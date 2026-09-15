@@ -134,7 +134,12 @@
     if (document.visibilityState === "hidden") {
       heading.textContent = "Claude Code is opening";
       status.dataset.kind = "ok";
-      status.textContent = "Handed off to Claude Opener. You can close this tab.";
+      status.textContent = "Handed off to Claude Opener. Closing this tab…";
+      // Terminal took focus, so the launch worked. Close the tab; browsers that refuse just leave it open.
+      setTimeout(function () { window.close(); }, 400);
+      setTimeout(function () {
+        status.textContent = "Handed off to Claude Opener. You can close this tab.";
+      }, 1500);
     }
   });
   btn.addEventListener("click", function () { launch("click"); });
