@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Claude Opener</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #f5f4f0;
+    --panel: #ffffff;
+    --ink: #1c1e21;
+    --muted: #6b6f78;
+    --line: #dcdad3;
+    --accent: #c9641e;
+    --accent-ink: #ffffff;
+    --ok: #2f7d4f;
+    --warn: #b4531a;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: "IBM Plex Sans", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #131517; --panel: #1b1e22; --ink: #e8e6e1; --muted: #9a9ea6;
+      --line: #2c3036; --accent: #e07a2e; --accent-ink: #141414; --ok: #6cc08b; --warn: #f0a06a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #131517; --panel: #1b1e22; --ink: #e8e6e1; --muted: #9a9ea6;
+    --line: #2c3036; --accent: #e07a2e; --accent-ink: #141414; --ok: #6cc08b; --warn: #f0a06a;
+  }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--sans); font-size: 15px; line-height: 1.5;
+    padding-inline: 20px; padding-block: 56px 40px;
+    min-height: 100%;
+  }
+  main { max-width: 520px; margin: 0 auto; display: grid; gap: 20px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); display: flex; align-items: center; gap: 10px;
+  }
+  .eyebrow::before { content: ""; width: 10px; height: 10px; background: var(--accent); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px 20px; display: grid; gap: 14px; }
+  .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .path {
+    font-family: var(--mono); font-size: 14px; word-break: break-all;
+    padding: 10px 12px; border-radius: 6px; background: var(--ground); border: 1px solid var(--line);
+  }
+  button {
+    font: inherit; font-weight: 600; cursor: pointer; border: 0; border-radius: 6px;
+    padding: 12px 18px; background: var(--accent); color: var(--accent-ink);
+  }
+  button:hover { filter: brightness(1.06); }
+  button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  button[disabled] { opacity: 0.5; cursor: default; }
+  .status { font-size: 14px; color: var(--muted); min-height: 1.5em; }
+  .status[data-kind="ok"] { color: var(--ok); }
+  .status[data-kind="warn"] { color: var(--warn); }
+  details { font-size: 14px; color: var(--muted); }
+  details summary { cursor: pointer; }
+  details p { margin: 8px 0 0; }
+  details code { font-family: var(--mono); font-size: 13px; word-break: break-all; }
+  .empty { color: var(--muted); }
+</style>
+
+</head>
+<body>
+<main>
+  <div class="eyebrow">Claude Opener</div>
+  <h1 id="heading">Opening Claude Code…</h1>
+
+  <section class="panel">
+    <div class="label">Project folder</div>
+    <div class="path" id="path"><span class="empty">No folder in this link.</span></div>
+    <div><button id="open" type="button" disabled>Open in Claude Code</button></div>
+    <div class="status" id="status"></div>
+  </section>
+
+  <details>
+    <summary>If nothing happens</summary>
+    <p>Claude Opener must be installed on this Mac. The first time, the browser asks “Open Claude Opener?”; choose Open.
+       The link this page hands to macOS is <code id="scheme-link"></code>.</p>
+    <p>To use this page from Notion, link to it as <code>https://tysoncottam.github.io/claude-opener/?path=~/code/your/folder</code>.</p>
+  </details>
+</main>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function readPath() {
+    var sources = [location.hash.replace(/^#/, ""), location.search.replace(/^\?/, "")];
+    for (var i = 0; i < sources.length; i++) {
+      var params = new URLSearchParams(sources[i]);
+      var p = params.get("path");
+      if (p) return p.trim();
+    }
+    return "";
+  }
+  var path = readPath();
+  var heading = $("heading"), status = $("status"), btn = $("open");
+  if (!path) {
+    heading.textContent = "No folder in this link";
+    status.textContent = "Add ?path=~/code/… to the end of this page’s address.";
+    return;
+  }
+  var target = "claudeopen://open?path=" + encodeURIComponent(path).replace(/%2F/g, "/").replace(/%7E/g, "~");
+  $("path").textContent = path;
+  $("scheme-link").textContent = target;
+  btn.disabled = false;
+
+  function launch(how) {
+    status.dataset.kind = "";
+    status.textContent = how === "auto" ? "Asking macOS to open Claude Code…" : "Opening…";
+    try {
+      location.href = target;
+      setTimeout(function () {
+        if (document.visibilityState === "visible") {
+          status.dataset.kind = "warn";
+          status.textContent = how === "auto"
+            ? "Still here? Click the button, or allow the browser’s “Open Claude Opener?” prompt."
+            : "If Terminal did not appear, allow the browser’s “Open Claude Opener?” prompt.";
+        }
+      }, 1500);
+    } catch (e) {
+      status.dataset.kind = "warn";
+      status.textContent = "This browser blocked the launch: " + e.message;
+    }
+  }
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden") {
+      heading.textContent = "Claude Code is opening";
+      status.dataset.kind = "ok";
+      status.textContent = "Handed off to Claude Opener. You can close this tab.";
+    }
+  });
+  btn.addEventListener("click", function () { launch("click"); });
+  launch("auto");
+})();
+</script>
+
+</body>
+</html>
